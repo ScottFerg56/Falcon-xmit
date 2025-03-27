@@ -1,0 +1,4 @@
+esp now comms
+transfer sound files by esp now
+
+need luminance control over generated colors to keep them from being too bright
