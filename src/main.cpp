@@ -2,7 +2,7 @@
 #if LV_USE_TFT_ESPI
 #define DISABLE_ALL_LIBRARY_WARNINGS
 #endif
-#include "Falcon.h"
+#include "xmit.h"
 #define CALIBRATING_TS 0
 #include <Elecrow-5in-Display.h>
 #include "UI.h"
@@ -81,6 +81,11 @@ bool SendData(const uint8_t *pData, int len)
         return false;
     }
     return true;
+}
+
+void SendCmd(String cmd)
+{
+    SendData((uint8_t*)cmd.c_str(), cmd.length());
 }
 
 void setup()
@@ -165,7 +170,7 @@ void loop(void)
             if (c < ' ')
             {
                 if (cmd.length() > 0)
-                    SendData((uint8_t*)cmd.c_str(), cmd.length());
+                    SendCmd(cmd);
                 cmd.clear();
             }
             else
