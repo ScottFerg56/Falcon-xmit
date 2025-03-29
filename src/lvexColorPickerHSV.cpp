@@ -31,7 +31,7 @@ lv_obj_t* lvexColorPickerHSV::Create(lv_obj_t* parent, ColorClient* client)
     for (int row = 0; row < 3; row++)
     {
         auto lbl = lv_label_create(grid);
-        lv_label_set_text(lbl, (row == hueInx) ? "Hue:" : (row == satInx) ? "Sat:" : "Val:");
+        lv_label_set_text(lbl, (row == hueInx) ? "Hue:" : (row == satInx) ? "Sat:" : "Brt:");
         lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
         lbl = lv_label_create(grid);

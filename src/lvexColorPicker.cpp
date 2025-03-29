@@ -4,6 +4,7 @@
 void lvexColorPicker::Create()
 {
     window = lv_win_create(lv_screen_active());
+    lv_obj_set_scroll_dir(window, LV_DIR_NONE);
     auto hdr = lv_win_get_header(window);
     lv_obj_set_height(hdr, 40);
     lblTitle = lv_win_add_title(window, "");
@@ -12,12 +13,11 @@ void lvexColorPicker::Create()
     AddEvent(btn, LV_EVENT_CLICKED);
 
     lv_obj_t * cont = lv_win_get_content(window);  /*Content can be added here*/
+    lv_obj_set_scroll_dir(cont, LV_DIR_NONE);
 
     auto grid = lv_obj_create(cont);
     auto picker = pickerHSV.Create(grid, this);
-    flogv("");
     auto pal = palette.Create(grid, this);
-    flogv("");
     panelSample = lv_obj_create(grid);
 
     static int32_t col_dsc[] = {LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
@@ -33,7 +33,7 @@ void lvexColorPicker::Create()
     lv_obj_set_align(grid, LV_ALIGN_CENTER);
 
     lv_obj_set_grid_cell(picker, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
-    lv_obj_set_grid_cell(pal, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_grid_cell(pal, LV_GRID_ALIGN_CENTER, 0, 2, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_grid_cell(panelSample, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
 
     setColor(lv_color_make(0x50, 0x50, 0x50));
