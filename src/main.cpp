@@ -56,7 +56,10 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *pData, int len)
 {
     DataConnected = true;
     String cmd(pData, len);
-    Serial.print(cmd.c_str());
+    if (cmd[0] == '=')
+        flogv("data received: [%s]", cmd.c_str());
+    else
+        Serial.print(cmd.c_str());
 }
 
 bool SendData(const uint8_t *pData, int len)
