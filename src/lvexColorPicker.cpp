@@ -1,5 +1,6 @@
 #include "lvexColorPicker.h"
 #include "FLogger.h"
+#include "xmit.h"
 
 void lvexColorPicker::Create()
 {
@@ -9,7 +10,8 @@ void lvexColorPicker::Create()
     lv_obj_set_height(hdr, 40);
     lblTitle = lv_win_add_title(window, "");
 
-    lv_obj_t* btn = lv_win_add_button(window, LV_SYMBOL_CLOSE, 60);
+    auto btn = lv_win_add_button(window, LV_SYMBOL_CLOSE, 60);
+    lv_obj_set_id(btn, (void*)1000);
     AddEvent(btn, LV_EVENT_CLICKED);
 
     lv_obj_t * cont = lv_win_get_content(window);  /*Content can be added here*/
@@ -26,24 +28,85 @@ void lvexColorPicker::Create()
     lv_obj_set_style_grid_column_dsc_array(grid, col_dsc, 0);
     lv_obj_set_style_grid_row_dsc_array(grid, row_dsc, 0);
     lv_obj_set_layout(grid, LV_LAYOUT_GRID);
-    //lv_obj_set_style_pad_column(grid, 30, 0);
-    lv_obj_set_style_pad_row(grid, 20, 0);
+    lv_obj_set_style_pad_column(grid, 10, 0);
+    lv_obj_set_style_pad_row(grid, 10, 0);
     lv_obj_set_scroll_dir(grid, LV_DIR_NONE);
-    lv_obj_set_size(grid, 800, 440);
-    lv_obj_set_align(grid, LV_ALIGN_CENTER);
+    lv_obj_set_size(grid, 800, 260);
+    lv_obj_set_align(grid, LV_ALIGN_TOP_MID);
 
     lv_obj_set_grid_cell(picker, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lv_obj_set_grid_cell(pal, LV_GRID_ALIGN_CENTER, 0, 2, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_grid_cell(panelSample, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
 
-    setColor(lv_color_make(0x50, 0x50, 0x50));
+    auto grid2 = lv_obj_create(cont);
+    static int32_t col_dsc2[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+    lv_obj_set_style_grid_column_dsc_array(grid2, col_dsc2, 0);
+    lv_obj_set_style_grid_row_dsc_array(grid2, row_dsc, 0);
+    lv_obj_set_layout(grid2, LV_LAYOUT_GRID);
+    lv_obj_set_style_pad_row(grid2, 5, 0);
+    lv_obj_set_scroll_dir(grid2, LV_DIR_NONE);
+    lv_obj_set_size(grid2, 800, 120);
+    lv_obj_set_align(grid2, LV_ALIGN_BOTTOM_MID);
+
+    const char* labels[] = { "On", "Anim", "Color", "Speed", "Rev" };
+    for (int i = 0; i < 5; i++)
+    {
+        auto lbl = lv_label_create(grid2);
+        lv_label_set_text(lbl, labels[i]);
+        lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_CENTER, i, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+    }
+    // on/off switch
+    auto sw = lv_switch_create(grid2);
+    lv_obj_set_size(sw, 80, 40);
+    lv_obj_set_grid_cell(sw, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_id(sw, (void*)2000);
+    AddEvent(sw, LV_EVENT_VALUE_CHANGED);
+
+    // Anim selection dropdown
+    auto dd = lv_dropdown_create(grid2);
+    lv_dropdown_set_options(dd, "Apple\n"
+                            "Banana\n"
+                            "Orange\n"
+                            "Cherry\n"
+                            "Grape\n"
+                            "Raspberry\n"
+                            "Melon\n"
+                            "Orange\n"
+                            "Lemon\n"
+                            "Nuts");
+    lv_obj_set_grid_cell(dd, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_id(dd, (void*)2001);
+    AddEvent(dd, LV_EVENT_VALUE_CHANGED);
+
+    // Color 1/2 selector
+    dd = lv_dropdown_create(grid2);
+    lv_dropdown_set_options(dd, "Color1\n" "Color2");
+    lv_obj_set_grid_cell(dd, LV_GRID_ALIGN_CENTER, 2, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_id(dd, (void*)2002);
+    AddEvent(dd, LV_EVENT_VALUE_CHANGED);
+
+    // Speed slider
+    auto slider = lv_slider_create(grid2);
+    lv_obj_set_size(slider, 180, 30);
+    lv_slider_set_range(slider, 100, 5000);
+    lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_id(slider, (void*)2003);
+    AddEvent(slider, LV_EVENT_VALUE_CHANGED);
+
+    // Reverse switch
+    sw = lv_switch_create(grid2);
+    lv_obj_set_size(sw, 80, 40);
+    lv_obj_set_grid_cell(sw, LV_GRID_ALIGN_CENTER, 4, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_id(sw, (void*)2004);
+    AddEvent(sw, LV_EVENT_VALUE_CHANGED);
 }
 
-void lvexColorPicker::Show(lv_color_t color, const char*title, ColorClient* client)
+void lvexColorPicker::Show(const char* title, const char* cmdPath)
 {
     if (!colorPicker.window)
         colorPicker.Create();
-    colorPicker.colorClient = client;
+    colorPicker.CmdPath = cmdPath;
+    colorPicker.InitFlags = 0;
     lv_disp_t * display = lv_display_get_default();
     lv_obj_t * active_screen = lv_display_get_screen_active(display);
 
@@ -51,37 +114,162 @@ void lvexColorPicker::Show(lv_color_t color, const char*title, ColorClient* clie
     lv_obj_set_parent(colorPicker.window, active_screen);
 
     lv_label_set_text(colorPicker.lblTitle, title);
-    colorPicker.setColor(color);
     lv_obj_remove_flag(colorPicker.window, LV_OBJ_FLAG_HIDDEN); /* show the dialog */
-    lv_obj_scroll_to_y(colorPicker.window, 0, LV_ANIM_ON);
+    lv_obj_scroll_to_y(colorPicker.window, 0, LV_ANIM_OFF);
+    SendCmd("?" + colorPicker.CmdPath);
 }
 
 void lvexColorPicker::EventFired(lv_event_t* e)
 {
+    lv_obj_t* obj = lv_event_get_target_obj(e);
+    auto id = (int)lv_obj_get_id(obj);
     auto code = lv_event_get_code(e);
     switch (code)
     {
     case LV_EVENT_CLICKED:
-        lv_obj_add_flag(window, LV_OBJ_FLAG_HIDDEN);
-        colorClient = nullptr;
+        switch (id)
+        {
+        case 1000:  // windows close button
+            lv_obj_add_flag(window, LV_OBJ_FLAG_HIDDEN);
+            CmdPath = "";
+            break;
+        
+        default:
+            break;
+        }
+        break;
+    case LV_EVENT_VALUE_CHANGED:
+        switch (id)
+        {
+        case 2000:  // On switch
+            if (CmdPath.length() > 0)
+            {
+                auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
+                SendCmd("=" + CmdPath + 'o' + (checked ? '1' : '0'));
+            }
+            break;
+        case 2001:  // Anim list
+            if (CmdPath.length() > 0)
+            {
+                auto inx = lv_dropdown_get_selected(obj);
+                SendCmd("=" + CmdPath + 'a' + String(inx));
+            }
+            break;
+        case 2002:  // Color 1/2 list
+            {
+                auto inx = lv_dropdown_get_selected(obj);
+                ColorInx = inx;
+            }
+            break;
+        default:
+            break;
+        }
         break;
     }
 }
 
-void lvexColorPicker::setColor(lv_color_t color)
+void lvexColorPicker::Command(String cmd)
 {
-    if (lv_color_eq(currentColor, color))
+    if (InitComplete() || CmdPath.length() == 0 || cmd.length() == 0 || cmd[0] != '=')
         return;
-    currentColor = color;
-    pickerHSV.setColor(color);
-    lv_obj_set_style_bg_color(panelSample, color, 0);
-    if (colorClient)
-        colorClient->ColorChanged(color);
+    int inx = 1;
+    if (cmd.indexOf(CmdPath) != inx)
+        return;
+    inx += CmdPath.length();
+    switch (cmd[inx])
+    {
+    case 'o':
+        {
+            InitFlags |= 0b0000001;
+            auto sw = lv_obj_get_child_by_id(window, (void*)2000);
+            if (sw)
+            {
+                bool on = cmd[++inx] == '1';
+                bool pre = (lv_obj_get_state(sw) & LV_STATE_CHECKED) != 0;
+                if (pre != on)
+                {
+                    if (on)
+                        lv_obj_add_state(sw, LV_STATE_CHECKED);
+                    else
+                        lv_obj_remove_state(sw, LV_STATE_CHECKED);
+                }
+            }
+        }
+        break;
+    case 'a':
+        {
+            InitFlags |= 0b0000010;
+            auto dd = lv_obj_get_child_by_id(window, (void*)2001);
+            if (dd)
+            {
+                auto pre = lv_dropdown_get_selected(dd);
+                auto anim = cmd.substring(++inx).toInt();
+                if (pre != anim)
+                    lv_dropdown_set_selected(dd, (uint32_t)anim);
+            }
+        }
+        break;
+    case 'c':
+    case 'd':
+        {
+            InitFlags |= (cmd[inx] == 'c' ? 0b0000100 : 0b0001000);
+            if (pickerHSV.isBusy())
+                return;
+            // which color
+            uint8_t ix = cmd[inx] == 'c' ? 0 : 1;
+            // string hex color value
+            auto s = cmd.substring(++inx);
+            const char* p = s.c_str();
+            char *pend;
+            // hex color value
+            auto value = strtoul(p, &pend, 16);
+            if (pend == p || value == ULONG_MAX)
+            {
+                floge("invalid long value: [%s]", p);
+                return;
+            }
+            flogv("received Color%d value %X", ix, value);
+            // color value
+            auto color = lv_color_hex(value);
+            // if current color, set and reflect in UI, otherwise just set
+            setColor(ix, color);
+        }
+    break;
+    case 's':
+        InitFlags |= 0b0010000;
+        break;
+    case 'r':
+        InitFlags |= 0b0100000;
+        break;
+    default:
+        break;
+    }
+}
+
+void lvexColorPicker::setColor(uint8_t inx, lv_color_t color)
+{
+    // actually changed?
+    if (lv_color_eq(Colors[inx], color))
+        return;
+    // save color
+    Colors[inx] = color;
+    if (inx == ColorInx)
+    {
+        // active color, set UI
+        pickerHSV.setColor(color);
+        if (CmdPath.length() > 0)
+        {
+            // send change
+            lv_obj_set_style_bg_color(panelSample, color, 0);
+            SendCmd("=" + CmdPath + (ColorInx == 0 ? 'c' : 'd') + String(lv_color_to_int(color), 16));
+        }
+    }
 }
 
 void lvexColorPicker::ColorChanged(lv_color_t color)
 {
-    setColor(color);
+    // flogv("color changed %X", lv_color_to_int(color));
+    setColor(ColorInx, color);
 }
 
 lvexColorPicker lvexColorPicker::colorPicker;

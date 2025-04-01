@@ -27,7 +27,6 @@ struct Control
 
     uint16_t row;
     bool expanded;
-    lv_color_t color;
 };
 
 const char* sOff = "off";
@@ -37,34 +36,34 @@ Control Controls[] =
 {
 {"Rectenna",    false, false, "stop", "sweep", "as"},
 {"Ramp",        false, false, "up",   "down",  ""},
-{"Engine",		false, false, sOff,   sOn,     "leo"},
-{"Landing",		false, false, sOff,   sOn,     "llo"},
-{"Warning",		false, false, sOff,   sOn,     "lwo"},
-{"Headlight",	false, false, sOff,   sOn,     "ldo"},
-{"Gunwell",     false, false, sOff,   sOn,     "lgo"},
-{"Ramp",        false, false, sOff,   sOn,     "lro"},
-{"Tubes",       true,  false, sOff,   sOn,     "lto"},
-   {"Sconce",   false, true,  sOff,   sOn,     "ltso"},
-   {"Floor",    false, true,  sOff,   sOn,     "ltfo"},
-{"Hold",		true,  false, sOff,   sOn,     "lho"},
-  {"Bay",		false, true,  sOff,   sOn,     "lhyo"},
-  {"Bed",		false, true,  sOff,   sOn,     "lhbo"},
-  {"Grates",    false, true,  sOff,   sOn,     "lhgo"},
-  {"Monitor",   false, true,  sOff,   sOn,     "lhmo"},
-  {"Red",		false, true,  sOff,   sOn,     "lh0o"},
-  {"Green",	    false, true,  sOff,   sOn,     "lh1o"},
-  {"Blue",      false, true,  sOff,   sOn,     "lh2o"},
-  {"Yellow",    false, true,  sOff,   sOn,     "lh3o"},
-{"Cockpit",     true,  false, sOff,   sOn,     "lco"},
-  {"Monitor",   false, true,  sOff,   sOn,     "lcmo"},
-  {"Red",		false, true,  sOff,   sOn,     "lc0o"},
-  {"Green",	    false, true,  sOff,   sOn,     "lc1o"},
-  {"Blue",      false, true,  sOff,   sOn,     "lc2o"},
-  {"Yellow",    false, true,  sOff,   sOn,     "lc3o"},
-  {"WallUL",    false, true,  sOff,   sOn,     "lc4o"},
-  {"WallUR",    false, true,  sOff,   sOn,     "lc5o"},
-  {"WallLL",    false, true,  sOff,   sOn,     "lc6o"},
-  {"WallLR",    false, true,  sOff,   sOn,     "lc7o"},
+{"Engine",		false, false, sOff,   sOn,     "le"},
+{"Landing",		false, false, sOff,   sOn,     "ll"},
+{"Warning",		false, false, sOff,   sOn,     "lw"},
+{"Headlight",	false, false, sOff,   sOn,     "ld"},
+{"Gunwell",     false, false, sOff,   sOn,     "lg"},
+{"Ramp",        false, false, sOff,   sOn,     "lr"},
+{"Tubes",       true,  false, sOff,   sOn,     "lt"},
+   {"Sconce",   false, true,  sOff,   sOn,     "lts"},
+   {"Floor",    false, true,  sOff,   sOn,     "ltf"},
+{"Hold",		true,  false, sOff,   sOn,     "lh"},
+  {"Bay",		false, true,  sOff,   sOn,     "lhy"},
+  {"Bed",		false, true,  sOff,   sOn,     "lhb"},
+  {"Grates",    false, true,  sOff,   sOn,     "lhg"},
+  {"Monitor",   false, true,  sOff,   sOn,     "lhm"},
+  {"Red",		false, true,  sOff,   sOn,     "lh0"},
+  {"Green",	    false, true,  sOff,   sOn,     "lh1"},
+  {"Blue",      false, true,  sOff,   sOn,     "lh2"},
+  {"Yellow",    false, true,  sOff,   sOn,     "lh3"},
+{"Cockpit",     true,  false, sOff,   sOn,     "lc"},
+  {"Monitor",   false, true,  sOff,   sOn,     "lcm"},
+  {"Red",		false, true,  sOff,   sOn,     "lc0"},
+  {"Green",	    false, true,  sOff,   sOn,     "lc1"},
+  {"Blue",      false, true,  sOff,   sOn,     "lc2"},
+  {"Yellow",    false, true,  sOff,   sOn,     "lc3"},
+  {"WallUL",    false, true,  sOff,   sOn,     "lc4"},
+  {"WallUR",    false, true,  sOff,   sOn,     "lc5"},
+  {"WallLL",    false, true,  sOff,   sOn,     "lc6"},
+  {"WallLR",    false, true,  sOff,   sOn,     "lc7"},
 {""}
 };
 
@@ -82,7 +81,7 @@ void ControlsUI::EventFired(lv_event_t * e)
         // settings button clicked
         LV_UNUSED(obj);
         currentControl = row;
-        lvexColorPicker::Show(control->color, control->name, this);
+        lvexColorPicker::Show(control->name, control->cmdPath);
     }
     else if (code == LV_EVENT_CLICKED && col == colExpander)
     {
@@ -93,15 +92,14 @@ void ControlsUI::EventFired(lv_event_t * e)
     else if (code == LV_EVENT_VALUE_CHANGED)
     {
         // on-off switch clicked
-        LV_UNUSED(obj);
         auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
         flogv("Switch [%d] %s: %s", (uint32_t)lv_obj_get_id(obj), control->name, checked ? "On" : "Off");
         if (strlen(control->cmdPath) > 0)
         {
             String cmd(control->cmdPath);
-            cmd.concat(checked ? '1' : '0');
-            cmd = "=" + cmd;
-            SendCmd(cmd);
+            if (cmd[0] == 'l')
+                cmd.concat('o');
+            SendCmd('=' + cmd + (checked ? '1' : '0'));
         }
         if (control->isFather)
         {
@@ -271,10 +269,4 @@ lv_obj_t* ControlsUI::Create(lv_obj_t* parent)
         controlRowShow(row, !Controls[row].isSon);
     }
     return grid;
-}
-
-void ControlsUI::ColorChanged(lv_color_t color)
-{
-    if (currentControl >= 0 && currentControl < ARRAY_LENGTH(Controls))
-        Controls[currentControl].color = color;
 }

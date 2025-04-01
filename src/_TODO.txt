@@ -1,4 +1,9 @@
-esp now comms
+finish connecting settings UI
+double check slider dragging feedback
+proper setup of anim selector - list from rcvr?
+is esp_now data recv interrupt based or sync'd with loop?
+    possible issues with data buffering critical section
+rcvr & xmit - queue send & recv cmds for packet aggregation in loop
 transfer sound files by esp now
 
 need luminance control over generated colors to keep them from being too bright

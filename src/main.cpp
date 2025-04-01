@@ -3,6 +3,8 @@
 #define DISABLE_ALL_LIBRARY_WARNINGS
 #endif
 #include "xmit.h"
+#include "lvexColorPicker.h"
+
 #define CALIBRATING_TS 0
 #include <Elecrow-5in-Display.h>
 #include "UI.h"
@@ -10,6 +12,7 @@
 #include "FLogger.h"
 #include <esp_now.h>
 #include <WiFi.h>
+#include <queue>
 
 // void lv_obj_set_id(lv_obj_t * obj, void * id)
 // {
@@ -41,6 +44,8 @@ uint8_t peerMacAddress[] = {0xE8, 0x9F, 0x6D, 0x20, 0x7D, 0x28};
 esp_now_peer_info_t PeerInfo;
 bool DataSent = false;
 bool DataConnected = false;
+bool lockInput = false;
+std::queue<String> inputCommands;
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
@@ -55,11 +60,35 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 void OnDataRecv(const uint8_t *mac_addr, const uint8_t *pData, int len)
 {
     DataConnected = true;
-    String cmd(pData, len);
-    if (cmd[0] == '=')
-        flogv("data received: [%s]", cmd.c_str());
-    else
-        Serial.print(cmd.c_str());
+    if (len > 0)
+    {
+        String data(pData, len);
+        if (data[0] == '=')
+        {
+            lockInput = true;
+            while (data.length() > 0)
+            {
+                String cmd;
+                auto inx = data.indexOf(';');
+                if (inx == -1)
+                {
+                    cmd = data;
+                    data.clear();
+                }
+                else
+                {
+                    cmd = data.substring(0, inx);
+                    data.remove(0, inx+1);
+                }
+                inputCommands.push(cmd);
+            }
+            lockInput = false;
+        }
+        else
+        {
+            Serial.print(data.c_str());
+        }
+    }
 }
 
 bool SendData(const uint8_t *pData, int len)
@@ -88,6 +117,7 @@ bool SendData(const uint8_t *pData, int len)
 
 void SendCmd(String cmd)
 {
+    // flogv("cmd send: [%s]", cmd);
     SendData((uint8_t*)cmd.c_str(), cmd.length());
 }
 
@@ -158,6 +188,13 @@ void loop(void)
 {
     lv_timer_handler(); // let the GUI work
     delay(5);
+    if (!inputCommands.empty() && !lockInput)
+    {
+        auto cmd = inputCommands.front();
+        inputCommands.pop();
+        flogv("data received: [%s]", cmd.c_str());
+        lvexColorPicker::GetInstance().Command(cmd);
+    }
     if (Serial.available())
     {
         static String cmd;
