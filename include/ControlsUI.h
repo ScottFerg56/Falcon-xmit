@@ -6,15 +6,21 @@
 class ControlsUI : public EventClient
 {
 public:
-    lv_obj_t* Create(lv_obj_t* parent);
-    void setColorPicker(lvexColorPicker* picker);
-    // as a ColorClient, we receive color change events
+    void Create(lv_obj_t* parent);
+    void Command(String cmd);
+    static ControlsUI& GetInstance() { return controlsUI; }
+    // Delete copy constructor and assignment operator to prevent copying singleton
+    ControlsUI(const ControlsUI&) = delete;
+    ControlsUI& operator=(const ControlsUI&) = delete;
+protected:
     virtual void EventFired(lv_event_t* e);
 private:
-    lvexColorPicker* colorPicker;
+    // Static member variable to hold the single instance
+    static ControlsUI controlsUI;
+    // private constructor for singleton
+    ControlsUI() { };
     uint8_t currentControl;
     lv_obj_t* grid;
     void controlRowShow(int row, bool show);
     void controlToggleExpansion(int row);
 };
-

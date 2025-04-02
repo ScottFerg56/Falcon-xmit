@@ -1,4 +1,6 @@
 finish connecting settings UI
+move settings button to item label
+spice up UI with BG images, button/slider shapes, icons
 double check slider dragging feedback
 proper setup of anim selector - list from rcvr?
 is esp_now data recv interrupt based or sync'd with loop?

@@ -287,10 +287,10 @@ void lvexColorPickerHSV::setColor(lv_color_t color)
     RGB = color;
     HSV = rgb_to_fhsv(color);
 
-    dumpRGB("rgb in:  ", RGB);    
-    dumpHSV("hsv in:  ", HSV);
+    // dumpRGB("rgb in:  ", RGB);    
+    // dumpHSV("hsv in:  ", HSV);
     lv_color_t rgb2 = fhsv_to_rgb(HSV);
-    dumpRGB("rgb out: ", rgb2);
+    // dumpRGB("rgb out: ", rgb2);
 
     setSliderValue(hueInx);
     setSliderValue(satInx);

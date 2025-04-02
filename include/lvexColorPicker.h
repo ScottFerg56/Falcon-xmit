@@ -9,19 +9,19 @@ class lvexColorPicker : public ColorClient, public EventClient
 {
 public:
     static void Show(const char* title, const char* cmdPath);
+    void Command(String cmd);
     // as a ColorClient, we receive color change events from the HSV picker and palette
     virtual void ColorChanged(lv_color_t color);
     static lvexColorPicker& GetInstance() { return colorPicker; }
-    void Command(String cmd);
-    // Delete copy constructor and assignment operator to prevent copying
+    // Delete copy constructor and assignment operator to prevent copying singleton
     lvexColorPicker(const lvexColorPicker&) = delete;
     lvexColorPicker& operator=(const lvexColorPicker&) = delete;
 protected:
     virtual void EventFired(lv_event_t* e);
 private:
-    // singleton instance
-    static lvexColorPicker colorPicker;
     // Static member variable to hold the single instance
+    static lvexColorPicker colorPicker;
+    // private constructor for singleton
     lvexColorPicker() { };
     void Create();
     String CmdPath;

@@ -35,7 +35,7 @@ const char* sOn = "on";
 Control Controls[] =
 {
 {"Rectenna",    false, false, "stop", "sweep", "as"},
-{"Ramp",        false, false, "up",   "down",  ""},
+{"Ramp",        false, false, "up",   "down",  "rs"},
 {"Engine",		false, false, sOff,   sOn,     "le"},
 {"Landing",		false, false, sOff,   sOn,     "ll"},
 {"Warning",		false, false, sOff,   sOn,     "lw"},
@@ -66,6 +66,54 @@ Control Controls[] =
   {"WallLR",    false, true,  sOff,   sOn,     "lc7"},
 {""}
 };
+
+void ControlsUI::Command(String cmd)
+{
+    // find the control cmdPath that matches the input
+    cmd = cmd.substring(1);
+    Control* control = nullptr;
+    for (int row = 0; strlen(Controls[row].name) > 0; row++)
+    {
+        auto ctrl = &Controls[row];
+        if (ctrl->isFather) // skip group
+            continue;
+        if (cmd.startsWith(ctrl->cmdPath))
+        {
+            control = ctrl;
+            break;
+        }
+    }
+    if (control)
+    {
+        int inx = strlen(control->cmdPath);
+        if (cmd[0] == 'l')
+        {
+            if (cmd[inx] != 'o')
+                return;
+            ++inx;
+        }
+        else
+        {
+            // UNDONE: rectenna/ramp
+            return;
+        }
+        auto sw = lv_obj_get_child_by_id(grid, (void*)(control->row * 100 + colSwitch));
+        if (!sw)
+        {
+            floge("sw not found");
+            return;
+        }
+        bool on = cmd[inx] == '1';
+        bool pre = (lv_obj_get_state(sw) & LV_STATE_CHECKED) != 0;
+        if (pre != on)
+        {
+            if (on)
+                lv_obj_add_state(sw, LV_STATE_CHECKED);
+            else
+                lv_obj_remove_state(sw, LV_STATE_CHECKED);
+        }
+    }
+}
 
 void ControlsUI::EventFired(lv_event_t * e)
 {
@@ -171,12 +219,7 @@ void ControlsUI::controlToggleExpansion(int row)
     lv_label_set_text(lbl, Controls[row].expanded ? LV_SYMBOL_MINUS : LV_SYMBOL_PLUS);
 }
 
-void ControlsUI::setColorPicker(lvexColorPicker* picker)
-{
-    colorPicker = picker;
-}
-
-lv_obj_t* ControlsUI::Create(lv_obj_t* parent)
+void ControlsUI::Create(lv_obj_t* parent)
 {
     static int32_t col_dsc[] =
         //Expander         Indent Name LblOff           Switch           LblOn            Settings         Pad
@@ -268,5 +311,7 @@ lv_obj_t* ControlsUI::Create(lv_obj_t* parent)
 
         controlRowShow(row, !Controls[row].isSon);
     }
-    return grid;
+    return;
 }
+
+ControlsUI ControlsUI::controlsUI;

@@ -4,6 +4,7 @@
 #endif
 #include "xmit.h"
 #include "lvexColorPicker.h"
+#include "ControlsUI.h"
 
 #define CALIBRATING_TS 0
 #include <Elecrow-5in-Display.h>
@@ -194,6 +195,7 @@ void loop(void)
         inputCommands.pop();
         flogv("data received: [%s]", cmd.c_str());
         lvexColorPicker::GetInstance().Command(cmd);
+        ControlsUI::GetInstance().Command(cmd);
     }
     if (Serial.available())
     {
