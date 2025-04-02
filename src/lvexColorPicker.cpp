@@ -2,6 +2,25 @@
 #include "FLogger.h"
 #include "xmit.h"
 
+enum controlIds
+{
+    btnClose,
+    lblOn,
+    lblAnim,
+    lblColor,
+    lblSpeed,
+    lblRev,
+    swOn,
+    ddAnim,
+    ddColor,
+    slSpeed,
+    swRev,
+};
+
+const int SpeedSliderMin = 1;
+const int SpeedSliderMax = 100;
+const int SpeedSliderScale = 100;
+
 void lvexColorPicker::Create()
 {
     window = lv_win_create(lv_screen_active());
@@ -11,10 +30,10 @@ void lvexColorPicker::Create()
     lblTitle = lv_win_add_title(window, "");
 
     auto btn = lv_win_add_button(window, LV_SYMBOL_CLOSE, 60);
-    lv_obj_set_id(btn, (void*)1000);
+    lv_obj_set_id(btn, (void*)btnClose);
     AddEvent(btn, LV_EVENT_CLICKED);
 
-    lv_obj_t * cont = lv_win_get_content(window);  /*Content can be added here*/
+    auto cont = lv_win_get_content(window);  /*Content can be added here*/
     lv_obj_set_scroll_dir(cont, LV_DIR_NONE);
 
     auto grid = lv_obj_create(cont);
@@ -53,13 +72,14 @@ void lvexColorPicker::Create()
     {
         auto lbl = lv_label_create(grid2);
         lv_label_set_text(lbl, labels[i]);
+        lv_obj_set_id(lbl, (void*)(lblOn + i));
         lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_CENTER, i, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     }
     // on/off switch
     auto sw = lv_switch_create(grid2);
     lv_obj_set_size(sw, 80, 40);
     lv_obj_set_grid_cell(sw, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-    lv_obj_set_id(sw, (void*)2000);
+    lv_obj_set_id(sw, (void*)swOn);
     AddEvent(sw, LV_EVENT_VALUE_CHANGED);
 
     // Anim selection dropdown
@@ -75,29 +95,29 @@ void lvexColorPicker::Create()
                             "Lemon\n"
                             "Nuts");
     lv_obj_set_grid_cell(dd, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-    lv_obj_set_id(dd, (void*)2001);
+    lv_obj_set_id(dd, (void*)ddAnim);
     AddEvent(dd, LV_EVENT_VALUE_CHANGED);
 
     // Color 1/2 selector
     dd = lv_dropdown_create(grid2);
     lv_dropdown_set_options(dd, "Color1\n" "Color2");
     lv_obj_set_grid_cell(dd, LV_GRID_ALIGN_CENTER, 2, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-    lv_obj_set_id(dd, (void*)2002);
+    lv_obj_set_id(dd, (void*)ddColor);
     AddEvent(dd, LV_EVENT_VALUE_CHANGED);
 
     // Speed slider
     auto slider = lv_slider_create(grid2);
     lv_obj_set_size(slider, 180, 30);
-    lv_slider_set_range(slider, 100, 5000);
+    lv_slider_set_range(slider, SpeedSliderMin, SpeedSliderMax);
     lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-    lv_obj_set_id(slider, (void*)2003);
+    lv_obj_set_id(slider, (void*)slSpeed);
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
 
     // Reverse switch
     sw = lv_switch_create(grid2);
     lv_obj_set_size(sw, 80, 40);
     lv_obj_set_grid_cell(sw, LV_GRID_ALIGN_CENTER, 4, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-    lv_obj_set_id(sw, (void*)2004);
+    lv_obj_set_id(sw, (void*)swRev);
     AddEvent(sw, LV_EVENT_VALUE_CHANGED);
 }
 
@@ -108,7 +128,7 @@ void lvexColorPicker::Show(const char* title, const char* cmdPath)
     colorPicker.CmdPath = cmdPath;
     colorPicker.InitFlags = 0;
     lv_disp_t * display = lv_display_get_default();
-    lv_obj_t * active_screen = lv_display_get_screen_active(display);
+    auto active_screen = lv_display_get_screen_active(display);
 
     // attach the dialog window to current active screen
     lv_obj_set_parent(colorPicker.window, active_screen);
@@ -119,11 +139,21 @@ void lvexColorPicker::Show(const char* title, const char* cmdPath)
     SendCmd("?" + colorPicker.CmdPath);
 }
 
+void lvexColorPicker::setSpeedLabel(int speed)
+{
+    auto lbl = lv_obj_get_child_by_id(window, (void*)lblSpeed);
+    if (lbl)
+    {
+        String txt = "Speed: " + String(speed);
+        lv_label_set_text(lbl, txt.c_str());
+    }
+}
+
 void lvexColorPicker::EventFired(lv_event_t* e)
 {
     if (CmdPath.length() == 0)
         return;
-    lv_obj_t* obj = lv_event_get_target_obj(e);
+    auto obj = lv_event_get_target_obj(e);
     auto id = (int)lv_obj_get_id(obj);
     auto code = lv_event_get_code(e);
     switch (code)
@@ -131,7 +161,7 @@ void lvexColorPicker::EventFired(lv_event_t* e)
     case LV_EVENT_CLICKED:
         switch (id)
         {
-        case 1000:  // windows close button
+        case btnClose:  // windows close button
             lv_obj_add_flag(window, LV_OBJ_FLAG_HIDDEN);
             CmdPath = "";
             break;
@@ -143,19 +173,19 @@ void lvexColorPicker::EventFired(lv_event_t* e)
     case LV_EVENT_VALUE_CHANGED:
         switch (id)
         {
-        case 2000:  // On switch
+        case swOn:  // On switch
             {
                 auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
                 SendCmd("=" + CmdPath + 'o' + (checked ? '1' : '0'));
             }
             break;
-        case 2001:  // Anim list
+        case ddAnim:  // Anim list
             {
                 auto inx = lv_dropdown_get_selected(obj);
                 SendCmd("=" + CmdPath + 'a' + String(inx));
             }
             break;
-        case 2002:  // Color 1/2 list
+        case ddColor:  // Color 1/2 list
             {
                 auto inx = lv_dropdown_get_selected(obj);
                 ColorInx = inx;
@@ -163,7 +193,15 @@ void lvexColorPicker::EventFired(lv_event_t* e)
                 lv_obj_set_style_bg_color(panelSample, Colors[inx], 0);
             }
             break;
-        case 2004:  // Reverse switch
+        case slSpeed:  // Speed slider
+            {
+                // slider values are in tenths of seconds
+                auto speed = lv_slider_get_value(obj) * SpeedSliderScale;
+                setSpeedLabel(speed);
+                SendCmd("=" + CmdPath + 's' + String(speed));
+            }
+            break;
+        case swRev:  // Reverse switch
             {
                 auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
                 SendCmd("=" + CmdPath + 'r' + (checked ? '1' : '0'));
@@ -187,7 +225,7 @@ void lvexColorPicker::Command(String cmd)
     case 'o':
         {
             InitFlags |= 0b0000001;
-            auto sw = lv_obj_get_child_by_id(window, (void*)2000);
+            auto sw = lv_obj_get_child_by_id(window, (void*)swOn);
             if (sw)
                 lv_obj_set_state(sw, LV_STATE_CHECKED, cmd[++inx] == '1');
         }
@@ -195,7 +233,7 @@ void lvexColorPicker::Command(String cmd)
     case 'a':
         {
             InitFlags |= 0b0000010;
-            auto dd = lv_obj_get_child_by_id(window, (void*)2001);
+            auto dd = lv_obj_get_child_by_id(window, (void*)ddAnim);
             if (dd)
             {
                 auto pre = lv_dropdown_get_selected(dd);
@@ -230,14 +268,27 @@ void lvexColorPicker::Command(String cmd)
             // if current color, set and reflect in UI, otherwise just set
             setColor(ix, color);
         }
-    break;
+        break;
     case 's':
-        InitFlags |= 0b0010000;
+        {
+            InitFlags |= 0b0010000;
+            // string speed value
+            auto speed = cmd.substring(++inx).toInt();
+            if (speed > SpeedSliderMax * SpeedSliderScale)
+                speed = SpeedSliderMax * SpeedSliderScale;
+            else if (speed < SpeedSliderMin * SpeedSliderScale)
+                speed = SpeedSliderMin * SpeedSliderScale;
+            auto v = (speed + SpeedSliderScale / 2) / SpeedSliderScale;
+            auto slider = lv_obj_get_child_by_id(window, (void*)slSpeed);
+            if (slider)
+                lv_slider_set_value(slider, v, LV_ANIM_OFF);
+            setSpeedLabel(speed);
+        }
         break;
     case 'r':
         {
             InitFlags |= 0b0100000;
-            auto sw = lv_obj_get_child_by_id(window, (void*)2004);
+            auto sw = lv_obj_get_child_by_id(window, (void*)swRev);
             if (sw)
                 lv_obj_set_state(sw, LV_STATE_CHECKED, cmd[++inx] == '1');
         }

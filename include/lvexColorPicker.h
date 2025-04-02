@@ -35,5 +35,6 @@ private:
     uint8_t InitFlags = 0;
     bool InitComplete() { return InitFlags == 0b0111111; }
     void setColor(uint8_t inx, lv_color_t color);
+    void setSpeedLabel(int speed);
     //lv_color_t getColor() { return Colors[ColorInx]; }
 };
