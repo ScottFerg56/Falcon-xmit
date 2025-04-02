@@ -236,6 +236,7 @@ void ControlsUI::Create(lv_obj_t* parent)
     lv_obj_set_style_pad_column(grid, 10, 0);
     lv_obj_set_style_pad_row(grid, 0, 0);
     lv_obj_set_scroll_dir(grid, LV_DIR_VER);
+    lv_obj_remove_flag(grid, LV_OBJ_FLAG_SCROLL_ELASTIC);
     row_dsc[ARRAY_LENGTH(Controls)] = LV_GRID_TEMPLATE_LAST;
 
     for (int row = 0; strlen(Controls[row].name) > 0; row++)
