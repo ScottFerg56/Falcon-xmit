@@ -121,6 +121,8 @@ void lvexColorPicker::Show(const char* title, const char* cmdPath)
 
 void lvexColorPicker::EventFired(lv_event_t* e)
 {
+    if (CmdPath.length() == 0)
+        return;
     lv_obj_t* obj = lv_event_get_target_obj(e);
     auto id = (int)lv_obj_get_id(obj);
     auto code = lv_event_get_code(e);
@@ -142,14 +144,12 @@ void lvexColorPicker::EventFired(lv_event_t* e)
         switch (id)
         {
         case 2000:  // On switch
-            if (CmdPath.length() > 0)
             {
                 auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
                 SendCmd("=" + CmdPath + 'o' + (checked ? '1' : '0'));
             }
             break;
         case 2001:  // Anim list
-            if (CmdPath.length() > 0)
             {
                 auto inx = lv_dropdown_get_selected(obj);
                 SendCmd("=" + CmdPath + 'a' + String(inx));
@@ -159,9 +159,15 @@ void lvexColorPicker::EventFired(lv_event_t* e)
             {
                 auto inx = lv_dropdown_get_selected(obj);
                 ColorInx = inx;
+                pickerHSV.setColor(Colors[inx]);
+                lv_obj_set_style_bg_color(panelSample, Colors[inx], 0);
             }
             break;
-        default:
+        case 2004:  // Reverse switch
+            {
+                auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
+                SendCmd("=" + CmdPath + 'r' + (checked ? '1' : '0'));
+            }
             break;
         }
         break;
@@ -183,17 +189,7 @@ void lvexColorPicker::Command(String cmd)
             InitFlags |= 0b0000001;
             auto sw = lv_obj_get_child_by_id(window, (void*)2000);
             if (sw)
-            {
-                bool on = cmd[++inx] == '1';
-                bool pre = (lv_obj_get_state(sw) & LV_STATE_CHECKED) != 0;
-                if (pre != on)
-                {
-                    if (on)
-                        lv_obj_add_state(sw, LV_STATE_CHECKED);
-                    else
-                        lv_obj_remove_state(sw, LV_STATE_CHECKED);
-                }
-            }
+                lv_obj_set_state(sw, LV_STATE_CHECKED, cmd[++inx] == '1');
         }
         break;
     case 'a':
@@ -239,7 +235,12 @@ void lvexColorPicker::Command(String cmd)
         InitFlags |= 0b0010000;
         break;
     case 'r':
-        InitFlags |= 0b0100000;
+        {
+            InitFlags |= 0b0100000;
+            auto sw = lv_obj_get_child_by_id(window, (void*)2004);
+            if (sw)
+                lv_obj_set_state(sw, LV_STATE_CHECKED, cmd[++inx] == '1');
+        }
         break;
     default:
         break;
@@ -248,6 +249,8 @@ void lvexColorPicker::Command(String cmd)
 
 void lvexColorPicker::setColor(uint8_t inx, lv_color_t color)
 {
+    if (CmdPath.length() == 0)
+        return;
     // actually changed?
     if (lv_color_eq(Colors[inx], color))
         return;
@@ -257,12 +260,9 @@ void lvexColorPicker::setColor(uint8_t inx, lv_color_t color)
     {
         // active color, set UI
         pickerHSV.setColor(color);
-        if (CmdPath.length() > 0)
-        {
-            // send change
-            lv_obj_set_style_bg_color(panelSample, color, 0);
-            SendCmd("=" + CmdPath + (ColorInx == 0 ? 'c' : 'd') + String(lv_color_to_int(color), 16));
-        }
+        // send change
+        lv_obj_set_style_bg_color(panelSample, color, 0);
+        SendCmd("=" + CmdPath + (ColorInx == 0 ? 'c' : 'd') + String(lv_color_to_int(color), 16));
     }
 }
 

@@ -98,20 +98,8 @@ void ControlsUI::Command(String cmd)
             return;
         }
         auto sw = lv_obj_get_child_by_id(grid, (void*)(control->row * 100 + colSwitch));
-        if (!sw)
-        {
-            floge("sw not found");
-            return;
-        }
-        bool on = cmd[inx] == '1';
-        bool pre = (lv_obj_get_state(sw) & LV_STATE_CHECKED) != 0;
-        if (pre != on)
-        {
-            if (on)
-                lv_obj_add_state(sw, LV_STATE_CHECKED);
-            else
-                lv_obj_remove_state(sw, LV_STATE_CHECKED);
-        }
+        if (sw)
+            lv_obj_set_state(sw, LV_STATE_CHECKED, cmd[inx] == '1');
     }
 }
 
@@ -156,10 +144,8 @@ void ControlsUI::EventFired(lv_event_t * e)
             for (uint8_t r = row + 1; Controls[r].isSon; r++)
             {
                 auto son = lv_obj_get_child_by_id(parent, (void*)(r * 100 + colSwitch));
-                if (checked)
-                    lv_obj_add_state(son, LV_STATE_CHECKED);
-                else
-                    lv_obj_remove_state(son, LV_STATE_CHECKED);
+                if (son)
+                    lv_obj_set_state(son, LV_STATE_CHECKED, checked);
             }
         }
         else if (control->isSon)

@@ -1,4 +1,5 @@
 finish connecting settings UI
+exponential hsv value relationship with slider to drop brightness off faster
 spice up UI with BG images, button/slider shapes, icons
 double check slider dragging feedback
 proper setup of anim selector - list from rcvr?
