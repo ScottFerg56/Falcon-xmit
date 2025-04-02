@@ -5,13 +5,12 @@
 enum controlIds
 {
     btnClose,
-    lblOn,
-    lblAnim,
-    lblColor,
-    lblSpeed,
-    lblRev,
-    swOn,
     ddAnim,
+    lblOn,
+    lblColor,
+    lblRev,
+    lblSpeed,
+    swOn,
     ddColor,
     slSpeed,
     swRev,
@@ -26,8 +25,27 @@ void lvexColorPicker::Create()
     window = lv_win_create(lv_screen_active());
     lv_obj_set_scroll_dir(window, LV_DIR_NONE);
     auto hdr = lv_win_get_header(window);
-    lv_obj_set_height(hdr, 40);
+    lv_obj_set_height(hdr, 50);
     lblTitle = lv_win_add_title(window, "");
+
+    // Anim selection dropdown
+    auto dda = lv_dropdown_create(hdr);
+    lv_obj_set_id(dda, (void*)ddAnim);
+    lv_dropdown_set_options(dda, "Apple\n"
+                            "Banana\n"
+                            "Orange\n"
+                            "Cherry\n"
+                            "Grape\n"
+                            "Raspberry\n"
+                            "Melon\n"
+                            "Orange\n"
+                            "Lemon\n"
+                            "Nuts");
+    lv_obj_set_size(dda, 500, LV_PCT(100));
+    // Set the text alignment to center
+    auto list = lv_dropdown_get_list(dda);
+    lv_obj_set_style_text_align(list, LV_TEXT_ALIGN_CENTER, 0);
+    AddEvent(dda, LV_EVENT_VALUE_CHANGED);
 
     auto btn = lv_win_add_button(window, LV_SYMBOL_CLOSE, 60);
     lv_obj_set_id(btn, (void*)btnClose);
@@ -58,7 +76,7 @@ void lvexColorPicker::Create()
     lv_obj_set_grid_cell(panelSample, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
 
     auto grid2 = lv_obj_create(cont);
-    static int32_t col_dsc2[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+    static int32_t col_dsc2[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     lv_obj_set_style_grid_column_dsc_array(grid2, col_dsc2, 0);
     lv_obj_set_style_grid_row_dsc_array(grid2, row_dsc, 0);
     lv_obj_set_layout(grid2, LV_LAYOUT_GRID);
@@ -67,13 +85,13 @@ void lvexColorPicker::Create()
     lv_obj_set_size(grid2, 800, 120);
     lv_obj_set_align(grid2, LV_ALIGN_BOTTOM_MID);
 
-    const char* labels[] = { "On", "Anim", "Color", "Speed", "Rev" };
-    for (int i = 0; i < 5; i++)
+    const char* labels[] = { "On", "Color", "Rev", "Speed" };
+    for (int id = lblOn; id <= lblSpeed; id++)
     {
         auto lbl = lv_label_create(grid2);
-        lv_label_set_text(lbl, labels[i]);
-        lv_obj_set_id(lbl, (void*)(lblOn + i));
-        lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_CENTER, i, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+        lv_label_set_text(lbl, labels[id - lblOn]);
+        lv_obj_set_id(lbl, (void*)(id));
+        lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_CENTER, id - lblOn, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     }
     // on/off switch
     auto sw = lv_switch_create(grid2);
@@ -82,43 +100,28 @@ void lvexColorPicker::Create()
     lv_obj_set_id(sw, (void*)swOn);
     AddEvent(sw, LV_EVENT_VALUE_CHANGED);
 
-    // Anim selection dropdown
-    auto dd = lv_dropdown_create(grid2);
-    lv_dropdown_set_options(dd, "Apple\n"
-                            "Banana\n"
-                            "Orange\n"
-                            "Cherry\n"
-                            "Grape\n"
-                            "Raspberry\n"
-                            "Melon\n"
-                            "Orange\n"
-                            "Lemon\n"
-                            "Nuts");
-    lv_obj_set_grid_cell(dd, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-    lv_obj_set_id(dd, (void*)ddAnim);
-    AddEvent(dd, LV_EVENT_VALUE_CHANGED);
-
     // Color 1/2 selector
-    dd = lv_dropdown_create(grid2);
+    auto dd = lv_dropdown_create(grid2);
+    lv_obj_set_width(dd, 150);
     lv_dropdown_set_options(dd, "Color1\n" "Color2");
-    lv_obj_set_grid_cell(dd, LV_GRID_ALIGN_CENTER, 2, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_grid_cell(dd, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_id(dd, (void*)ddColor);
     AddEvent(dd, LV_EVENT_VALUE_CHANGED);
-
-    // Speed slider
-    auto slider = lv_slider_create(grid2);
-    lv_obj_set_size(slider, 180, 30);
-    lv_slider_set_range(slider, SpeedSliderMin, SpeedSliderMax);
-    lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-    lv_obj_set_id(slider, (void*)slSpeed);
-    AddEvent(slider, LV_EVENT_VALUE_CHANGED);
 
     // Reverse switch
     sw = lv_switch_create(grid2);
     lv_obj_set_size(sw, 80, 40);
-    lv_obj_set_grid_cell(sw, LV_GRID_ALIGN_CENTER, 4, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_grid_cell(sw, LV_GRID_ALIGN_CENTER, 2, 1, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_id(sw, (void*)swRev);
     AddEvent(sw, LV_EVENT_VALUE_CHANGED);
+
+    // Speed slider
+    auto slider = lv_slider_create(grid2);
+    lv_obj_set_size(slider, 350, 30);
+    lv_slider_set_range(slider, SpeedSliderMin, SpeedSliderMax);
+    lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_id(slider, (void*)slSpeed);
+    AddEvent(slider, LV_EVENT_VALUE_CHANGED);
 }
 
 void lvexColorPicker::Show(const char* title, const char* cmdPath)

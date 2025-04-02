@@ -1,4 +1,3 @@
-move anim select dropdown to window header??
 exponential hsv value relationship with slider to drop brightness off faster
 spice up UI with BG images, button/slider shapes, icons
 double check slider dragging feedback
