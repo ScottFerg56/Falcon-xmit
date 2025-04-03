@@ -14,11 +14,16 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include <queue>
+#include "FS.h"
+#include "SD.h"
+#include "SPI.h"
 
-// void lv_obj_set_id(lv_obj_t * obj, void * id)
-// {
-//     obj->id = id;
-// }
+#define SD_MOSI 11
+#define SD_MISO 13
+#define SD_CLK 12
+#define SD_CS 10
+
+SPIClass spi = SPIClass();
 
 // #include <examples/lv_examples.h>
 // #include <demos/lv_demos.h>
@@ -122,6 +127,37 @@ void SendCmd(String cmd)
     SendData((uint8_t*)cmd.c_str(), cmd.length());
 }
 
+void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
+    Serial.printf("Listing directory: %s\n", dirname);
+  
+    File root = fs.open(dirname);
+    if(!root){
+      Serial.println("Failed to open directory");
+      return;
+    }
+    if(!root.isDirectory()){
+      Serial.println("Not a directory");
+      return;
+    }
+  
+    File file = root.openNextFile();
+    while(file){
+      if(file.isDirectory()){
+        Serial.print("  DIR : ");
+        Serial.println(file.name());
+        if(levels){
+          listDir(fs, file.name(), levels -1);
+        }
+      } else {
+        Serial.print("  FILE: ");
+        Serial.print(file.name());
+        Serial.print("  SIZE: ");
+        Serial.println(file.size());
+      }
+      file = root.openNextFile();
+    }
+  }
+  
 void setup()
 {
     Serial.begin(115200);
@@ -182,6 +218,26 @@ void setup()
 
     flogi("ESP_NOW init complete");
 
+    spi.begin(SD_CLK, SD_MISO, SD_MOSI, SD_CS);
+
+    if (!SD.begin(SD_CS, spi, 80000000))
+    {
+        floge("Card Mount Failed");
+    }
+    else
+    {
+        uint8_t cardType = SD.cardType();
+        if (cardType == CARD_NONE)
+        {
+            flogi("No SD card attached");
+        }
+        else
+        {
+            listDir(SD, "/", 0);
+            Serial.printf("Total space: %llu\n", SD.totalBytes());
+            Serial.printf("Used space: %llu\n", SD.usedBytes());
+        }
+    }
     flogv("Setup Done");
 }
 

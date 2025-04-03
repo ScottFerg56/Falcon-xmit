@@ -209,7 +209,7 @@ void ControlsUI::Create(lv_obj_t* parent)
 {
     static int32_t col_dsc[] =
         //Expander         Indent Name LblOff           Switch           LblOn            Settings         Pad
-        { LV_GRID_CONTENT, 30,    110, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, 1, LV_GRID_TEMPLATE_LAST };
+        { LV_GRID_CONTENT, 30,    140, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, 1, LV_GRID_TEMPLATE_LAST };
     static int32_t row_dsc[ARRAY_LENGTH(Controls)+1];
 
     // Create a grid container
@@ -223,6 +223,7 @@ void ControlsUI::Create(lv_obj_t* parent)
     lv_obj_set_style_pad_row(grid, 0, 0);
     lv_obj_set_scroll_dir(grid, LV_DIR_VER);
     lv_obj_remove_flag(grid, LV_OBJ_FLAG_SCROLL_ELASTIC);
+    lv_obj_set_style_bg_opa(grid, LV_OPA_90, 0);
     row_dsc[ARRAY_LENGTH(Controls)] = LV_GRID_TEMPLATE_LAST;
 
     for (int row = 0; strlen(Controls[row].name) > 0; row++)
@@ -250,12 +251,12 @@ void ControlsUI::Create(lv_obj_t* parent)
         lv_label_set_text(lbl, Controls[row].name);
         lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_START, Controls[row].isSon ? colName : colIndent, Controls[row].isSon ? 1 : 2, LV_GRID_ALIGN_CENTER, row, 1);
         lv_obj_set_id(lbl, (void*)(row * 100 + colName));
+        lv_obj_set_style_text_font(lbl, &lv_font_montserrat_30, 0);
         //
         // LABEL OFF
         //
         lbl = lv_label_create(grid);
         lv_label_set_text(lbl, Controls[row].lblOff);
-        lv_obj_set_style_text_color(lbl, lv_palette_main(LV_PALETTE_BLUE_GREY), 0);
         lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, colLblOff, 1, LV_GRID_ALIGN_CENTER, row, 1);
         lv_obj_set_id(lbl, (void*)(row * 100 + colLblOff));
         //
@@ -273,7 +274,6 @@ void ControlsUI::Create(lv_obj_t* parent)
         lv_label_set_text(lbl, Controls[row].lblOn);
         lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_START, colLblOn, 1, LV_GRID_ALIGN_CENTER, row, 1);
         lv_obj_set_id(lbl, (void*)(row * 100 + colLblOn));
-        lv_obj_set_style_text_color(lbl, lv_palette_main(LV_PALETTE_BLUE_GREY), 0);
         //
         // SETTINGS (button)
         //

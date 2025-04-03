@@ -63,9 +63,14 @@ const int SpeedSliderScale = 100;
 void lvexColorPicker::Create()
 {
     window = lv_win_create(lv_screen_active());
+
+    LV_IMG_DECLARE(FalconBG);
+    lv_obj_set_style_bg_image_src(window, &FalconBG, 0);
+
     lv_obj_set_scroll_dir(window, LV_DIR_NONE);
     auto hdr = lv_win_get_header(window);
     lv_obj_set_height(hdr, 50);
+    lv_obj_set_style_bg_opa(hdr, LV_OPA_90, 0);
     lblTitle = lv_win_add_title(window, "");
 
     auto abtn = lv_button_create(hdr);
@@ -82,10 +87,11 @@ void lvexColorPicker::Create()
     lv_dropdown_clear_options(dda);
     for (uint16_t i = 0; i < ARRAY_LENGTH(stdEffects); i++)
         lv_dropdown_add_option(dda, stdEffects[i], i);
-    lv_obj_set_size(dda, 450, LV_PCT(100));
+    lv_obj_set_size(dda, 400, LV_PCT(100));
     // Set the text alignment to center
     auto list = lv_dropdown_get_list(dda);
     lv_obj_set_style_text_align(list, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_style_bg_opa(dda, LV_OPA_0, 0);
     AddEvent(dda, LV_EVENT_VALUE_CHANGED);
 
     abtn = lv_button_create(hdr);
@@ -100,8 +106,9 @@ void lvexColorPicker::Create()
     lv_obj_set_id(btn, (void*)btnClose);
     AddEvent(btn, LV_EVENT_CLICKED);
 
-    auto cont = lv_win_get_content(window);  /*Content can be added here*/
+    auto cont = lv_win_get_content(window);
     lv_obj_set_scroll_dir(cont, LV_DIR_NONE);
+    lv_obj_set_style_bg_opa(cont, LV_OPA_0, 0);
 
     auto grid = lv_obj_create(cont);
     auto picker = pickerHSV.Create(grid, this);
@@ -119,6 +126,7 @@ void lvexColorPicker::Create()
     lv_obj_set_scroll_dir(grid, LV_DIR_NONE);
     lv_obj_set_size(grid, 800, 260);
     lv_obj_set_align(grid, LV_ALIGN_TOP_MID);
+    lv_obj_set_style_bg_opa(grid, LV_OPA_90, 0);
 
     lv_obj_set_grid_cell(picker, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lv_obj_set_grid_cell(pal, LV_GRID_ALIGN_CENTER, 0, 2, LV_GRID_ALIGN_CENTER, 1, 1);
@@ -133,8 +141,9 @@ void lvexColorPicker::Create()
     lv_obj_set_scroll_dir(grid2, LV_DIR_NONE);
     lv_obj_set_size(grid2, 800, 120);
     lv_obj_set_align(grid2, LV_ALIGN_BOTTOM_MID);
+    lv_obj_set_style_bg_opa(grid2, LV_OPA_90, 0);
 
-    const char* labels[] = { "On", "Color", "Rev", "Speed" };
+    const char* labels[] = { "On", "Color", "Rev", "Delay" };
     for (int id = lblOn; id <= lblSpeed; id++)
     {
         auto lbl = lv_label_create(grid2);
@@ -196,7 +205,7 @@ void lvexColorPicker::setSpeedLabel(int speed)
     auto lbl = lv_obj_get_child_by_id(window, (void*)lblSpeed);
     if (lbl)
     {
-        String txt = "Speed: " + String(speed);
+        String txt = "Delay: " + String(speed);
         lv_label_set_text(lbl, txt.c_str());
     }
 }

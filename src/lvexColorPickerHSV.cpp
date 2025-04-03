@@ -144,6 +144,7 @@ lv_obj_t* lvexColorPickerHSV::Create(lv_obj_t* parent, ColorClient* client)
     lv_obj_set_style_pad_column(grid, 10, 0);
     lv_obj_set_style_pad_row(grid, 20, 0);
     lv_obj_set_scroll_dir(grid, LV_DIR_NONE);
+    lv_obj_set_style_bg_opa(grid, LV_OPA_30, 0);
 
     for (int row = 0; row < 3; row++)
     {

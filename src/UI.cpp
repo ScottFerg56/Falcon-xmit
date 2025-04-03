@@ -7,7 +7,7 @@
 
 lv_obj_t* tabview;
 lv_obj_t* tabControls;
-lv_obj_t* tabColorPicker;
+lv_obj_t* tab2;
 lv_obj_t* tab3;
 
 static lv_theme_t theme_custom;
@@ -82,18 +82,24 @@ void createUI(void)
     
     // Create a Tab view
     tabview = lv_tabview_create(lv_screen_active());
+    LV_IMG_DECLARE(FalconBG);
+    lv_obj_set_style_bg_image_src(tabview, &FalconBG, 0);
+    auto bar = lv_tabview_get_tab_bar(tabview);
+    lv_obj_set_style_bg_opa(bar, LV_OPA_90, 0);
+
     lv_tabview_set_tab_bar_size(tabview, 40);
     lv_obj_remove_flag(lv_tabview_get_content(tabview), LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_remove_flag(tabview, LV_OBJ_FLAG_SCROLL_CHAIN_HOR);
     
     // Add tabs
     tabControls = lv_tabview_add_tab(tabview, "Controls");
-    tabColorPicker = lv_tabview_add_tab(tabview, "Tab 2");
+    lv_obj_set_style_bg_opa(tabControls, LV_OPA_0, 0);
+    tab2 = lv_tabview_add_tab(tabview, "Tab 2");
     tab3 = lv_tabview_add_tab(tabview, "Tab 3");
     
     // scrolling the tabs makes UI interaction tedious
     lv_obj_remove_flag(tabControls, LV_OBJ_FLAG_SCROLLABLE);
     ControlsUI::GetInstance().Create(tabControls);
-    
+
     lv_tabview_set_active(tabview, 0, LV_ANIM_OFF);
 }

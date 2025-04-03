@@ -1,6 +1,6 @@
-hookup ramp and rectenna with settings dialogs
-spice up UI with fonts, BG images, button/slider shapes, icons
-double check slider dragging feedback
+hookup ramp and rectenna - move from controls to 'mech'? tab?
+spice up UI with fonts, button/slider shapes, icons, sounds??
+double check need for slider dragging feedback - isBusy
 add save to prefs option (button on settings header?)
 is esp_now data recv interrupt based or sync'd with loop?
     possible issues with data buffering critical section
