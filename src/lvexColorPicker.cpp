@@ -4,8 +4,10 @@
 
 enum controlIds
 {
-    btnClose,
+    btnPrevAnim,
     ddAnim,
+    btnNextAnim,
+    btnClose,
     lblOn,
     lblColor,
     lblRev,
@@ -14,6 +16,44 @@ enum controlIds
     ddColor,
     slSpeed,
     swRev,
+};
+
+const char* stdEffects [] =
+{
+    "Static",
+    "Blink",
+    "Strobe",
+    "Blink Rainbow",
+    "Wipe",
+    "Wipe Rev",
+    "Wipe Random",
+    "Scan",
+    "Dual Scan",
+    "Breathe",
+    "Random Color",
+    "Single Dynamic",
+    "Multi Dynamic",
+    "Rainbow",
+    "Rainbow Cycle",
+    "Fade",
+    "Theater Chase",
+    "Theater ChaseRainbow",
+    "Running Lights",
+    "Twinkle",
+    "Twinkle Random",
+    "Twinkle Fade",
+    "Twinkle Fade Random",
+    "Sparkle",
+    "Chase",
+    "ChaseRainbow",
+    "Chase Flash",
+    "Running",
+    "Cylon",
+    "Comet",
+    "FireWorks",
+    "Fireworks Random",
+    "Fire Flicker",
+    "Fire Flicker Intense",
 };
 
 const int SpeedSliderMin = 1;
@@ -28,24 +68,33 @@ void lvexColorPicker::Create()
     lv_obj_set_height(hdr, 50);
     lblTitle = lv_win_add_title(window, "");
 
+    auto abtn = lv_button_create(hdr);
+    lv_obj_set_size(abtn, 60, LV_PCT(100));
+    lv_obj_set_id(abtn, (void*)btnPrevAnim);
+    AddEvent(abtn, LV_EVENT_CLICKED);
+    auto albl = lv_label_create(abtn);
+    lv_label_set_text(albl, LV_SYMBOL_LEFT);
+    lv_obj_center(albl);
+
     // Anim selection dropdown
     auto dda = lv_dropdown_create(hdr);
     lv_obj_set_id(dda, (void*)ddAnim);
-    lv_dropdown_set_options(dda, "Apple\n"
-                            "Banana\n"
-                            "Orange\n"
-                            "Cherry\n"
-                            "Grape\n"
-                            "Raspberry\n"
-                            "Melon\n"
-                            "Orange\n"
-                            "Lemon\n"
-                            "Nuts");
-    lv_obj_set_size(dda, 500, LV_PCT(100));
+    lv_dropdown_clear_options(dda);
+    for (uint16_t i = 0; i < ARRAY_LENGTH(stdEffects); i++)
+        lv_dropdown_add_option(dda, stdEffects[i], i);
+    lv_obj_set_size(dda, 450, LV_PCT(100));
     // Set the text alignment to center
     auto list = lv_dropdown_get_list(dda);
     lv_obj_set_style_text_align(list, LV_TEXT_ALIGN_CENTER, 0);
     AddEvent(dda, LV_EVENT_VALUE_CHANGED);
+
+    abtn = lv_button_create(hdr);
+    lv_obj_set_size(abtn, 60, LV_PCT(100));
+    lv_obj_set_id(abtn, (void*)btnNextAnim);
+    AddEvent(abtn, LV_EVENT_CLICKED);
+    albl = lv_label_create(abtn);
+    lv_label_set_text(albl, LV_SYMBOL_RIGHT);
+    lv_obj_center(albl);
 
     auto btn = lv_win_add_button(window, LV_SYMBOL_CLOSE, 60);
     lv_obj_set_id(btn, (void*)btnClose);
@@ -168,8 +217,22 @@ void lvexColorPicker::EventFired(lv_event_t* e)
             lv_obj_add_flag(window, LV_OBJ_FLAG_HIDDEN);
             CmdPath = "";
             break;
-        
-        default:
+        case btnPrevAnim:
+        case btnNextAnim:
+            {
+                auto dd = lv_obj_get_child_by_id(window, (void*)ddAnim);
+                int32_t inx = lv_dropdown_get_selected(dd);
+                if (id == btnPrevAnim)
+                    --inx;
+                else
+                    ++inx;
+                if (inx < 0)
+                    inx = ARRAY_LENGTH(stdEffects) - 1;
+                else if (inx >= ARRAY_LENGTH(stdEffects))
+                    inx = 0;
+                lv_dropdown_set_selected(dd, inx);
+                SendCmd("=" + CmdPath + 'a' + String(inx));
+            }
             break;
         }
         break;

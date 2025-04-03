@@ -1,7 +1,7 @@
-exponential hsv value relationship with slider to drop brightness off faster
-spice up UI with BG images, button/slider shapes, icons
+hookup ramp and rectenna with settings dialogs
+spice up UI with fonts, BG images, button/slider shapes, icons
 double check slider dragging feedback
-proper setup of anim selector - list from rcvr?
+add save to prefs option (button on settings header?)
 is esp_now data recv interrupt based or sync'd with loop?
     possible issues with data buffering critical section
 rcvr & xmit - queue send & recv cmds for packet aggregation in loop
