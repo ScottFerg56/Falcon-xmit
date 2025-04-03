@@ -85,7 +85,7 @@ void createUI(void)
     LV_IMG_DECLARE(FalconBG);
     lv_obj_set_style_bg_image_src(tabview, &FalconBG, 0);
     auto bar = lv_tabview_get_tab_bar(tabview);
-    lv_obj_set_style_bg_opa(bar, LV_OPA_90, 0);
+    lv_obj_set_style_bg_opa(bar, LV_OPA_70, 0);
 
     lv_tabview_set_tab_bar_size(tabview, 40);
     lv_obj_remove_flag(lv_tabview_get_content(tabview), LV_OBJ_FLAG_SCROLLABLE);

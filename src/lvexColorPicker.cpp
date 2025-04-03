@@ -13,9 +13,10 @@ enum controlIds
     lblRev,
     lblSpeed,
     swOn,
-    ddColor,
-    slSpeed,
+    btnColor,
+    btnlblColor,
     swRev,
+    slSpeed,
 };
 
 const char* stdEffects [] =
@@ -37,7 +38,7 @@ const char* stdEffects [] =
     "Rainbow Cycle",
     "Fade",
     "Theater Chase",
-    "Theater ChaseRainbow",
+    "Theater Chase Rainbow",
     "Running Lights",
     "Twinkle",
     "Twinkle Random",
@@ -45,7 +46,7 @@ const char* stdEffects [] =
     "Twinkle Fade Random",
     "Sparkle",
     "Chase",
-    "ChaseRainbow",
+    "Chase Rainbow",
     "Chase Flash",
     "Running",
     "Cylon",
@@ -70,7 +71,7 @@ void lvexColorPicker::Create()
     lv_obj_set_scroll_dir(window, LV_DIR_NONE);
     auto hdr = lv_win_get_header(window);
     lv_obj_set_height(hdr, 50);
-    lv_obj_set_style_bg_opa(hdr, LV_OPA_90, 0);
+    lv_obj_set_style_bg_opa(hdr, LV_OPA_70, 0);
     lblTitle = lv_win_add_title(window, "");
 
     auto abtn = lv_button_create(hdr);
@@ -126,7 +127,7 @@ void lvexColorPicker::Create()
     lv_obj_set_scroll_dir(grid, LV_DIR_NONE);
     lv_obj_set_size(grid, 800, 260);
     lv_obj_set_align(grid, LV_ALIGN_TOP_MID);
-    lv_obj_set_style_bg_opa(grid, LV_OPA_90, 0);
+    lv_obj_set_style_bg_opa(grid, LV_OPA_70, 0);
 
     lv_obj_set_grid_cell(picker, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lv_obj_set_grid_cell(pal, LV_GRID_ALIGN_CENTER, 0, 2, LV_GRID_ALIGN_CENTER, 1, 1);
@@ -141,7 +142,7 @@ void lvexColorPicker::Create()
     lv_obj_set_scroll_dir(grid2, LV_DIR_NONE);
     lv_obj_set_size(grid2, 800, 120);
     lv_obj_set_align(grid2, LV_ALIGN_BOTTOM_MID);
-    lv_obj_set_style_bg_opa(grid2, LV_OPA_90, 0);
+    lv_obj_set_style_bg_opa(grid2, LV_OPA_70, 0);
 
     const char* labels[] = { "On", "Color", "Rev", "Delay" };
     for (int id = lblOn; id <= lblSpeed; id++)
@@ -159,12 +160,19 @@ void lvexColorPicker::Create()
     AddEvent(sw, LV_EVENT_VALUE_CHANGED);
 
     // Color 1/2 selector
-    auto dd = lv_dropdown_create(grid2);
-    lv_obj_set_width(dd, 150);
-    lv_dropdown_set_options(dd, "Color1\n" "Color2");
-    lv_obj_set_grid_cell(dd, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-    lv_obj_set_id(dd, (void*)ddColor);
-    AddEvent(dd, LV_EVENT_VALUE_CHANGED);
+    btn = lv_button_create(grid2);
+    lv_obj_set_size(btn, 150, 40);
+    lv_obj_set_id(btn, (void*)btnColor);
+    lv_obj_add_flag(btn, LV_OBJ_FLAG_CHECKABLE);
+    AddEvent(btn, LV_EVENT_VALUE_CHANGED);
+    auto lbl = lv_label_create(btn);
+    lv_obj_set_id(lbl, (void*)btnlblColor);
+    lv_label_set_text(lbl, "Color1");
+    lv_obj_center(lbl);
+    lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    // don't need the checked highlight since we're toggling the text
+    auto bgclr = lv_obj_get_style_bg_color(btn, 0);
+    lv_obj_set_style_bg_color(btn, bgclr, LV_STATE_CHECKED);
 
     // Reverse switch
     sw = lv_switch_create(grid2);
@@ -254,18 +262,20 @@ void lvexColorPicker::EventFired(lv_event_t* e)
                 SendCmd("=" + CmdPath + 'o' + (checked ? '1' : '0'));
             }
             break;
+        case btnColor:  // Color 1/2 button toggle
+        {
+            auto inx = lv_obj_has_state(obj, LV_STATE_CHECKED) ? 1 : 0;
+            ColorInx = inx;
+            auto lbl = lv_obj_get_child_by_id(obj, (void*)btnlblColor);
+            lv_label_set_text(lbl, inx == 0 ? "Color1" : "Color2");
+            pickerHSV.setColor(Colors[inx]);
+            lv_obj_set_style_bg_color(panelSample, Colors[inx], 0);
+        }
+        break;
         case ddAnim:  // Anim list
             {
                 auto inx = lv_dropdown_get_selected(obj);
                 SendCmd("=" + CmdPath + 'a' + String(inx));
-            }
-            break;
-        case ddColor:  // Color 1/2 list
-            {
-                auto inx = lv_dropdown_get_selected(obj);
-                ColorInx = inx;
-                pickerHSV.setColor(Colors[inx]);
-                lv_obj_set_style_bg_color(panelSample, Colors[inx], 0);
             }
             break;
         case slSpeed:  // Speed slider
