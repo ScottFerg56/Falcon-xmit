@@ -24,4 +24,5 @@ private:
     bool RectInitComplete() { return RectInitFlags == 0b0111; }
     uint8_t RampInitFlags = 0;
     bool RampInitComplete() { return RampInitFlags == 0b011; }
+    void MutexRampPosition(int idChecked);
 };
