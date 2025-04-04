@@ -3,24 +3,23 @@
 #include "lvexEvents.h"
 #include "lvexColorPicker.h"
 
-class ControlsUI : public EventClient
+class LightsUI : public EventClient
 {
 public:
     void Create(lv_obj_t* parent);
     void Command(String cmd);
-    static ControlsUI& GetInstance() { return controlsUI; }
+    static LightsUI& GetInstance() { return lightsUI; }
     // Delete copy constructor and assignment operator to prevent copying singleton
-    ControlsUI(const ControlsUI&) = delete;
-    ControlsUI& operator=(const ControlsUI&) = delete;
+    LightsUI(const LightsUI&) = delete;
+    LightsUI& operator=(const LightsUI&) = delete;
 protected:
     virtual void EventFired(lv_event_t* e);
 private:
     // Static member variable to hold the single instance
-    static ControlsUI controlsUI;
+    static LightsUI lightsUI;
     // private constructor for singleton
-    ControlsUI() { };
-    uint8_t currentControl;
+    LightsUI() { };
     lv_obj_t* grid;
-    void controlRowShow(int row, bool show);
-    void controlToggleExpansion(int row);
+    void lightRowShow(int row, bool show);
+    void lightToggleExpansion(int row);
 };

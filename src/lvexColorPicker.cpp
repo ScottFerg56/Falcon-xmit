@@ -4,6 +4,7 @@
 
 enum controlIds
 {
+    noZero,
     btnPrevAnim,
     ddAnim,
     btnNextAnim,
@@ -263,15 +264,15 @@ void lvexColorPicker::EventFired(lv_event_t* e)
             }
             break;
         case btnColor:  // Color 1/2 button toggle
-        {
-            auto inx = lv_obj_has_state(obj, LV_STATE_CHECKED) ? 1 : 0;
-            ColorInx = inx;
-            auto lbl = lv_obj_get_child_by_id(obj, (void*)btnlblColor);
-            lv_label_set_text(lbl, inx == 0 ? "Color1" : "Color2");
-            pickerHSV.setColor(Colors[inx]);
-            lv_obj_set_style_bg_color(panelSample, Colors[inx], 0);
-        }
-        break;
+            {
+                auto inx = lv_obj_has_state(obj, LV_STATE_CHECKED) ? 1 : 0;
+                ColorInx = inx;
+                auto lbl = lv_obj_get_child_by_id(obj, (void*)btnlblColor);
+                lv_label_set_text(lbl, inx == 0 ? "Color1" : "Color2");
+                pickerHSV.setColor(Colors[inx]);
+                lv_obj_set_style_bg_color(panelSample, Colors[inx], 0);
+            }
+            break;
         case ddAnim:  // Anim list
             {
                 auto inx = lv_dropdown_get_selected(obj);

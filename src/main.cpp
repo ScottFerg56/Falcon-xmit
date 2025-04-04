@@ -4,7 +4,8 @@
 #endif
 #include "xmit.h"
 #include "lvexColorPicker.h"
-#include "ControlsUI.h"
+#include "LightsUI.h"
+#include "MechUI.h"
 
 #define CALIBRATING_TS 0
 #include <Elecrow-5in-Display.h>
@@ -123,7 +124,7 @@ bool SendData(const uint8_t *pData, int len)
 
 void SendCmd(String cmd)
 {
-    // flogv("cmd send: [%s]", cmd);
+    flogv("cmd send: [%s]", cmd);
     SendData((uint8_t*)cmd.c_str(), cmd.length());
 }
 
@@ -186,12 +187,6 @@ void setup()
 
     lv_display_set_rotation(lv_display_get_default(), LV_DISPLAY_ROTATION_0);  // 0:90:180:270
 
-    flogv("createUI start");
-
-    createUI();
-
-    flogv("createUI done");
-
     flogi("WIFI init");
     if (!WiFi.mode(WIFI_STA))
         flogf("%s FAILED", "WIFI init");
@@ -238,6 +233,9 @@ void setup()
             Serial.printf("Used space: %llu\n", SD.usedBytes());
         }
     }
+
+    createUI();
+
     flogv("Setup Done");
 }
 
@@ -251,7 +249,8 @@ void loop(void)
         inputCommands.pop();
         flogv("data received: [%s]", cmd.c_str());
         lvexColorPicker::GetInstance().Command(cmd);
-        ControlsUI::GetInstance().Command(cmd);
+        LightsUI::GetInstance().Command(cmd);
+        MechUI::GetInstance().Command(cmd);
     }
     if (Serial.available())
     {

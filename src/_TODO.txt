@@ -1,6 +1,7 @@
-hookup ramp and rectenna - move from controls to 'mech'? tab?
+hookup ramp in MechUI
 spice up UI with fonts, button/slider shapes, icons, sounds??
 add save to prefs option (button on settings header?)
+Rectenna can sweep faster by incrementing pos rather than or in addition to reducing delay
 is esp_now data recv interrupt based or sync'd with loop?
     possible issues with data buffering critical section
 rcvr & xmit - queue send & recv cmds for packet aggregation in loop

@@ -2,12 +2,13 @@
 #include "..\.pio\libdeps\falcon-xmit\lvgl\src\themes\lv_theme_private.h"
 #include "xmit.h"
 #include "lvexColorPicker.h"
-#include "ControlsUI.h"
+#include "LightsUI.h"
+#include "MechUI.h"
 #include "FLogger.h"
 
 lv_obj_t* tabview;
 lv_obj_t* tabControls;
-lv_obj_t* tab2;
+lv_obj_t* tabMech;
 lv_obj_t* tab3;
 
 static lv_theme_t theme_custom;
@@ -92,14 +93,17 @@ void createUI(void)
     lv_obj_remove_flag(tabview, LV_OBJ_FLAG_SCROLL_CHAIN_HOR);
     
     // Add tabs
-    tabControls = lv_tabview_add_tab(tabview, "Controls");
+    tabControls = lv_tabview_add_tab(tabview, "Lights");
     lv_obj_set_style_bg_opa(tabControls, LV_OPA_0, 0);
-    tab2 = lv_tabview_add_tab(tabview, "Tab 2");
+    tabMech = lv_tabview_add_tab(tabview, "Mech");
     tab3 = lv_tabview_add_tab(tabview, "Tab 3");
     
     // scrolling the tabs makes UI interaction tedious
     lv_obj_remove_flag(tabControls, LV_OBJ_FLAG_SCROLLABLE);
-    ControlsUI::GetInstance().Create(tabControls);
+    LightsUI::GetInstance().Create(tabControls);
+
+    lv_obj_remove_flag(tabMech, LV_OBJ_FLAG_SCROLLABLE);
+    MechUI::GetInstance().Create(tabMech);
 
     lv_tabview_set_active(tabview, 0, LV_ANIM_OFF);
 }
