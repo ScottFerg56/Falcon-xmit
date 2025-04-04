@@ -14,7 +14,6 @@ class lvexColorPickerHSV : public EventClient
 public:
     lv_obj_t* Create(lv_obj_t* parent, ColorClient* client);
     void setColor(lv_color_t color);
-    bool isBusy();
 protected:
     virtual void EventFired(lv_event_t* e);
 private:

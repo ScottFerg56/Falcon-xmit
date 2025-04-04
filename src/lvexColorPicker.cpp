@@ -332,8 +332,6 @@ void lvexColorPicker::Command(String cmd)
     case 'd':
         {
             InitFlags |= (cmd[inx] == 'c' ? 0b0000100 : 0b0001000);
-            if (pickerHSV.isBusy())
-                return;
             // which color
             uint8_t ix = cmd[inx] == 'c' ? 0 : 1;
             // string hex color value

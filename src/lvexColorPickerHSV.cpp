@@ -169,16 +169,6 @@ lv_obj_t* lvexColorPickerHSV::Create(lv_obj_t* parent, ColorClient* client)
     return grid;
 }
 
-bool lvexColorPickerHSV::isBusy()
-{
-    for (int i = hueInx; i <= valInx; i++)
-    {
-        if (lv_slider_is_dragged(hsvSliders[i]))
-            return true;
-    }
-    return false;
-}
-
 void lvexColorPickerHSV::ChangeColor()
 {
     // dumpHSV("change: ", HSV);
