@@ -54,6 +54,19 @@ bool DataConnected = false;
 bool lockInput = false;
 std::queue<String> inputCommands;
 
+struct FilePacketHdr
+{
+    char        tag;
+    uint32_t    packetNum;
+};
+
+const uint16_t FilePacketSize = 240;
+uint32_t FilePacketCount = 0;
+uint32_t FilePacketNumber = 0;
+String FilePath;
+bool FilePacketSend = false;
+uint8_t FilePacketSendErrorCount = 0;
+
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
     DataSent = false;
@@ -61,6 +74,26 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
     {
         flogw("Delivery Fail");
         DataConnected = false;
+
+        if (FilePacketCount != 0)
+        {
+            if (++FilePacketSendErrorCount > 2)
+            {
+                // retries failed
+                FilePacketSend = false;
+                floge("file transfer failed");
+            }
+            else
+            {
+                // retry
+                FilePacketSend = true;
+                floge("file transfer retry %d", FilePacketSendErrorCount);
+            }
+        }
+    }
+    else if (FilePacketCount != 0)
+    {
+        // flogv("File transfer packet %lu suceeded", FilePacketNumber);
     }
 }
 
@@ -90,6 +123,20 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *pData, int len)
                 inputCommands.push(cmd);
             }
             lockInput = false;
+        }
+        else if (data[0] == '2')
+        {
+            // ACK received, OK the transmission of next packet
+            ++FilePacketNumber;
+            FilePacketSend = true;
+        }
+        else if (data[0] == '3')
+        {
+            // termination received
+            FilePacketCount = 0;
+            FilePacketNumber = 0;
+            FilePacketSend = false;
+            FilePath = "";
         }
         else
         {
@@ -125,7 +172,87 @@ bool SendData(const uint8_t *pData, int len)
 void SendCmd(String cmd)
 {
     flogv("cmd send: [%s]", cmd);
+    if (FilePacketCount > 0)
+    {
+        floge("cmd send skipped while file transfer in progress");
+        return;
+    }
     SendData((uint8_t*)cmd.c_str(), cmd.length());
+}
+
+void StartFileTransfer(String filePath)
+{
+    if (filePath.length() > 31)
+    {
+        floge("Filename length must be < 32");
+        return;
+    }
+    File file = SD.open(filePath.c_str(), FILE_READ);
+    if (!file)
+    {
+        floge("File open failed");
+        return;
+    }
+    uint32_t fileSize = file.size();
+    file.close();
+    FilePacketSendErrorCount = 0;
+    // packet 0 is the start packet with filename but no data
+    FilePacketNumber = 0;
+    FilePacketCount = fileSize / FilePacketSize;
+    if (fileSize % FilePacketSize != 0)
+    FilePacketCount++;
+    FilePath = filePath;
+    String fileName(pathToFileName(filePath.c_str()));
+    flogv("Starting transfer: %s  file size: %lu  #packets: %lu", FilePath.c_str(), fileSize, FilePacketCount);
+    FilePacketHdr hdr = { '1', FilePacketCount };
+    uint8_t messageArray[sizeof(hdr) + fileName.length() + 1];
+    memcpy(messageArray, &hdr, sizeof(hdr));
+    strcpy((char*)(messageArray + sizeof(hdr)), fileName.c_str());
+    SendData(messageArray, sizeof(messageArray));
+}
+
+void SendNextFilePacket()
+{
+    FilePacketSend = false;
+
+    // if got to AFTER the last package
+    if (FilePacketNumber > FilePacketCount)
+    {
+        FilePacketNumber = 0;
+        FilePacketCount = 0;
+        FilePath = "";
+        flogv("File transfer complete");
+        return;
+    }
+
+    File file = SD.open(FilePath.c_str(), FILE_READ);
+    if (!file)
+    {
+        FilePacketNumber = 0;
+        FilePacketCount = 0;
+        FilePath = "";
+        floge("File open failed");
+        return;
+    }
+
+    uint32_t packetDataSize = FilePacketSize;
+    if (FilePacketNumber == FilePacketCount)
+    {
+        // last packet - adjust the size
+        packetDataSize = file.size() - ((FilePacketCount - 1) * FilePacketSize);
+        // flogv("last file packet data size: %lu", packetDataSize);
+    }
+
+    FilePacketHdr hdr = { '2', FilePacketNumber };
+    uint8_t messageArray[sizeof(hdr) + packetDataSize];
+    memcpy(messageArray, &hdr, sizeof(hdr));
+
+    // we'll increment the FilePacketNumber in OnDataSent when packet transmission is confirmed
+
+    file.seek((FilePacketNumber - 1) * FilePacketSize);
+    file.readBytes((char*)messageArray + sizeof(hdr), packetDataSize);
+    file.close();
+    SendData(messageArray, sizeof(messageArray));
 }
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -243,6 +370,11 @@ void loop(void)
 {
     lv_timer_handler(); // let the GUI work
     delay(5);
+
+    // check to send next file transfer packet
+    if (FilePacketSend)
+        SendNextFilePacket();
+
     if (!inputCommands.empty() && !lockInput)
     {
         auto cmd = inputCommands.front();
@@ -267,7 +399,16 @@ void loop(void)
             if (c < ' ')
             {
                 if (cmd.length() > 0)
-                    SendCmd(cmd);
+                {
+                    if (cmd[0] == '=')
+                    {
+                        SendCmd(cmd);
+                    }
+                    else if (cmd[0] == 'x')
+                    {
+                        StartFileTransfer("/Sad R2D2.mp3");
+                    }
+                }
                 cmd.clear();
             }
             else
