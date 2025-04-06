@@ -163,8 +163,8 @@ void MechUI::Create(lv_obj_t* parent)
     lv_obj_set_id(slider, (void*)slSpeedRamp);
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
 
-    SendCmd(String("?a"));
-    SendCmd(String("?r"));
+    SEND(String("?a"));
+    SEND(String("?r"));
 }
 
 void MechUI::MutexRampPosition(int idChecked)
@@ -199,7 +199,7 @@ void MechUI::EventFired(lv_event_t * e)
             case swSweep:
                 {
                     auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
-                    SendCmd(String("=as") + (checked ? '1' : '0'));
+                    SEND(String("=as") + (checked ? '1' : '0'));
                 }
                 break;
             case slSpeedRect:
@@ -208,7 +208,7 @@ void MechUI::EventFired(lv_event_t * e)
                     auto lbl = lv_obj_get_child_by_id(gridRect, (void*)lblSpeedRect);
                     String spd(speed);
                     lv_label_set_text(lbl, spd.c_str());
-                    SendCmd("=av" + spd);
+                    SEND("=av" + spd);
                 }
                 break;
             case slPosition:
@@ -217,7 +217,7 @@ void MechUI::EventFired(lv_event_t * e)
                     auto lbl = lv_obj_get_child_by_id(gridRect, (void*)lblPosition);
                     String pos(position);
                     lv_label_set_text(lbl, pos.c_str());
-                    SendCmd("=ap" + pos);
+                    SEND("=ap" + pos);
                     // setting a position turns sweep off
                     // so reflect that here since we're blocking updates from rcvr
                     auto sw = lv_obj_get_child_by_id(gridRect, (void*)swSweep);
@@ -228,19 +228,19 @@ void MechUI::EventFired(lv_event_t * e)
             case btnUp:
                 {
                     MutexRampPosition(btnUp);   // retract
-                    SendCmd(String("=rsR"));
+                    SEND(String("=rsR"));
                 }
                 break;
             case btnStop:
                 {
                     MutexRampPosition(btnStop); // stop
-                    SendCmd(String("=rsS"));
+                    SEND(String("=rsS"));
                 }
                 break;
             case btnDown:
                 {
                     MutexRampPosition(btnDown);
-                    SendCmd(String("=rsE"));    // extend
+                    SEND(String("=rsE"));    // extend
                 }
                 break;
             case slSpeedRamp:
@@ -249,7 +249,7 @@ void MechUI::EventFired(lv_event_t * e)
                     auto lbl = lv_obj_get_child_by_id(gridRamp, (void*)lblSpeedRamp);
                     String spd(speed);
                     lv_label_set_text(lbl, spd.c_str());
-                    SendCmd("=rv" + spd);
+                    SEND("=rv" + spd);
                 }
                 break;
         }

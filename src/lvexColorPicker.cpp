@@ -206,7 +206,7 @@ void lvexColorPicker::Show(const char* title, const char* cmdPath)
     lv_label_set_text(colorPicker.lblTitle, title);
     lv_obj_remove_flag(colorPicker.window, LV_OBJ_FLAG_HIDDEN); /* show the dialog */
     lv_obj_scroll_to_y(colorPicker.window, 0, LV_ANIM_OFF);
-    SendCmd("?" + colorPicker.CmdPath);
+    SEND("?" + colorPicker.CmdPath);
 }
 
 void lvexColorPicker::setSpeedLabel(int speed)
@@ -249,7 +249,7 @@ void lvexColorPicker::EventFired(lv_event_t* e)
                 else if (inx >= ARRAY_LENGTH(stdEffects))
                     inx = 0;
                 lv_dropdown_set_selected(dd, inx);
-                SendCmd("=" + CmdPath + 'a' + String(inx));
+                SEND("=" + CmdPath + 'a' + String(inx));
             }
             break;
         }
@@ -260,7 +260,7 @@ void lvexColorPicker::EventFired(lv_event_t* e)
         case swOn:  // On switch
             {
                 auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
-                SendCmd("=" + CmdPath + 'o' + (checked ? '1' : '0'));
+                SEND("=" + CmdPath + 'o' + (checked ? '1' : '0'));
             }
             break;
         case btnColor:  // Color 1/2 button toggle
@@ -276,7 +276,7 @@ void lvexColorPicker::EventFired(lv_event_t* e)
         case ddAnim:  // Anim list
             {
                 auto inx = lv_dropdown_get_selected(obj);
-                SendCmd("=" + CmdPath + 'a' + String(inx));
+                SEND("=" + CmdPath + 'a' + String(inx));
             }
             break;
         case slSpeed:  // Speed slider
@@ -284,13 +284,13 @@ void lvexColorPicker::EventFired(lv_event_t* e)
                 // slider values are in tenths of seconds
                 auto speed = lv_slider_get_value(obj) * SpeedSliderScale;
                 setSpeedLabel(speed);
-                SendCmd("=" + CmdPath + 's' + String(speed));
+                SEND("=" + CmdPath + 's' + String(speed));
             }
             break;
         case swRev:  // Reverse switch
             {
                 auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
-                SendCmd("=" + CmdPath + 'r' + (checked ? '1' : '0'));
+                SEND("=" + CmdPath + 'r' + (checked ? '1' : '0'));
             }
             break;
         }
@@ -397,7 +397,7 @@ void lvexColorPicker::setColor(uint8_t inx, lv_color_t color)
         pickerHSV.setColor(color);
         // send change
         lv_obj_set_style_bg_color(panelSample, color, 0);
-        SendCmd("=" + CmdPath + (ColorInx == 0 ? 'c' : 'd') + String(lv_color_to_int(color), 16));
+        SEND("=" + CmdPath + (ColorInx == 0 ? 'c' : 'd') + String(lv_color_to_int(color), 16));
     }
 }
 

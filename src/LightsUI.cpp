@@ -132,7 +132,7 @@ void LightsUI::EventFired(lv_event_t * e)
             String cmd(light->cmdPath);
             if (cmd[0] == 'l')
                 cmd.concat('o');
-            SendCmd('=' + cmd + (checked ? '1' : '0'));
+            SEND('=' + cmd + (checked ? '1' : '0'));
         }
         if (light->isFather)
         {
