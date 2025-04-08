@@ -1,8 +1,33 @@
+use override keyword
+cleanup OMObject/Node id/name virtual getters : use contructor
+    default/empty constructors
+check min/max validation
+merge Agent and Root?
+properties:
+    not to be sent to peer
+        e.g. Debug.LogLevel
+    read only
+    write only
+OMObject for FileSys, System
+packet handler system
+    for FileSys to take over file xfer
+    for Root to receive commands
+heartbeat ACKs when idle
+    connection state tracking
+    resync of OM (need Server/Client distinction)
 spice up UI with fonts, button/slider shapes, icons, sounds??
 add save to prefs option (button on settings header?)
 Rectenna can sweep faster by incrementing pos rather than or in addition to reducing delay
 is esp_now data recv interrupt based or sync'd with loop?
     possible issues with data buffering critical section
 rcvr: Ramp speed always comes back as 100
+
+System:
+    identify
+    restart
+    memory usage
+FileSys: file system
+    nvs_flash_erase
+Agent: WiFi info/signal strength
 
 need luminance control over generated colors to keep them from being too bright
