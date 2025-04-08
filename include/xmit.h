@@ -5,4 +5,4 @@
 
 #define ARRAY_LENGTH(a) (sizeof(a) / sizeof(a[0]))
 
-#define SEND(x) Agent::GetInstance().SendCmd((x))
+#define SEND(x) Agent::GetInstance().Send((x))

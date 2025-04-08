@@ -80,12 +80,19 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     }
   }
 
-void Command(String cmd)
+class FRoot : public Root
 {
-    lvexColorPicker::GetInstance().Command(cmd);
-    LightsUI::GetInstance().Command(cmd);
-    MechUI::GetInstance().Command(cmd);
-}
+public:
+	FRoot() : Root('R', "Root", nullptr) { }
+    void    Command(String cmd) override
+    {
+        lvexColorPicker::GetInstance().Command(cmd);
+        LightsUI::GetInstance().Command(cmd);
+        MechUI::GetInstance().Command(cmd);
+    }
+};
+
+FRoot root;
 
 void setup()
 {
@@ -136,7 +143,8 @@ void setup()
         }
     }
 
-    Agent::GetInstance().Setup(&SD, peerMacAddress, Command);
+    Agent::GetInstance().Setup(&SD, peerMacAddress, &root);
+    root.Setup(&Agent::GetInstance());
 
     createUI();
 
@@ -178,7 +186,7 @@ void loop(void)
                     else
                     {
                         // command for ourself
-                        Command(cmd);
+                        root.Command(cmd);
                     }
                 }
                 cmd.clear();

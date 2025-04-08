@@ -1,8 +1,16 @@
+Agent integrates with Root
+    Server/Client distinction
+    base class
+    multiple instances
+implement xmit side object model
 use override keyword
-cleanup OMObject/Node id/name virtual getters : use contructor
-    default/empty constructors
+report rectenna position when stopped
+change to rect pos that turns sweep off should report that sweep is off
+SendCmd/SendData -> Send
 check min/max validation
-merge Agent and Root?
+FX names from shared header
+Sound UI
+sound names from fetched Sound property
 properties:
     not to be sent to peer
         e.g. Debug.LogLevel
