@@ -18,7 +18,7 @@
 #include "FS.h"
 #include "SD.h"
 #include "SPI.h"
-#include "Agent.h"
+#include "ESPNAgent.h"
 
 #define SD_MOSI 11
 #define SD_MISO 13
@@ -93,6 +93,7 @@ public:
 };
 
 FRoot root;
+ESPNAgent agent(&SD, &root);
 
 void setup()
 {
@@ -143,8 +144,8 @@ void setup()
         }
     }
 
-    Agent::GetInstance().Setup(&SD, peerMacAddress, &root);
-    root.Setup(&Agent::GetInstance());
+    agent.Setup(peerMacAddress);
+    root.Setup(&agent);
 
     createUI();
 
@@ -181,7 +182,7 @@ void loop(void)
                     else if (cmd[0] == 'x')
                     {
                         // file transfer
-                        Agent::GetInstance().StartFileTransfer("/Sad R2D2.mp3");
+                        ESPNAgent::PrimaryAgent()->StartFileTransfer("/Sad R2D2.mp3");
                     }
                     else
                     {
@@ -198,6 +199,5 @@ void loop(void)
         }
     }
 
-    Agent::GetInstance().Loop();
-
+    agent.Run();
 }

@@ -1,7 +1,5 @@
 Agent integrates with Root
     Server/Client distinction
-    base class
-    multiple instances
 implement xmit side object model
 use override keyword
 report rectenna position when stopped
@@ -22,6 +20,7 @@ packet handler system
     for Root to receive commands
 heartbeat ACKs when idle
     connection state tracking
+    'Send' errors better interaction with file transfer
     resync of OM (need Server/Client distinction)
 spice up UI with fonts, button/slider shapes, icons, sounds??
 add save to prefs option (button on settings header?)
