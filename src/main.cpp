@@ -83,7 +83,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
 class FRoot : public Root
 {
 public:
-	FRoot() : Root('R', "Root", nullptr) { }
+	FRoot(bool isDevice) : Root(isDevice, 'R', "Root", nullptr) { }
     void    Command(String cmd) override
     {
         lvexColorPicker::GetInstance().Command(cmd);
@@ -92,7 +92,7 @@ public:
     }
 };
 
-FRoot root;
+FRoot root(false);  // this is the controller, not the device
 ESPNAgent agent(&SD, &root);
 
 void setup()
