@@ -7,7 +7,7 @@ class LightsUI : public EventClient
 {
 public:
     void Create(lv_obj_t* parent);
-    void Command(String cmd);
+    void PropertyUpdate(OMProperty* prop);
     static LightsUI& GetInstance() { return lightsUI; }
     // Delete copy constructor and assignment operator to prevent copying singleton
     LightsUI(const LightsUI&) = delete;

@@ -1,4 +1,5 @@
-implement xmit side object model
+Build LightsUI from Object Model
+use Debug class in xmit?
 use override keyword
 report rectenna position when stopped
 change to rect pos that turns sweep off should report that sweep is off

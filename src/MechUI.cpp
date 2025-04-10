@@ -162,9 +162,7 @@ void MechUI::Create(lv_obj_t* parent)
     lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 3, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_id(slider, (void*)slSpeedRamp);
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
-
-    SEND(String("?a"));
-    SEND(String("?r"));
+    // UI states will be filled in after setup requests values from the device
 }
 
 void MechUI::MutexRampPosition(int idChecked)
@@ -199,25 +197,23 @@ void MechUI::EventFired(lv_event_t * e)
             case swSweep:
                 {
                     auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
-                    SEND(String("=as") + (checked ? '1' : '0'));
+                    ((OMPropertyBool*)root.PropertyFromPath("a", 's'))->SetSend(checked);
                 }
                 break;
             case slSpeedRect:
                 {
                     auto speed = lv_slider_get_value(obj);
                     auto lbl = lv_obj_get_child_by_id(gridRect, (void*)lblSpeedRect);
-                    String spd(speed);
-                    lv_label_set_text(lbl, spd.c_str());
-                    SEND("=av" + spd);
+                    lv_label_set_text(lbl, String(speed).c_str());
+                    ((OMPropertyLong*)root.PropertyFromPath("a", 'v'))->SetSend(speed);
                 }
                 break;
             case slPosition:
                 {
                     auto position = lv_slider_get_value(obj);
                     auto lbl = lv_obj_get_child_by_id(gridRect, (void*)lblPosition);
-                    String pos(position);
-                    lv_label_set_text(lbl, pos.c_str());
-                    SEND("=ap" + pos);
+                    lv_label_set_text(lbl, String(position).c_str());
+                    ((OMPropertyLong*)root.PropertyFromPath("a", 'p'))->SetSend(position);
                     // setting a position turns sweep off
                     // so reflect that here since we're blocking updates from rcvr
                     auto sw = lv_obj_get_child_by_id(gridRect, (void*)swSweep);
@@ -228,58 +224,51 @@ void MechUI::EventFired(lv_event_t * e)
             case btnUp:
                 {
                     MutexRampPosition(btnUp);   // retract
-                    SEND(String("=rsR"));
+                    ((OMPropertyChar*)root.PropertyFromPath("r", 's'))->SetSend('R');
                 }
                 break;
             case btnStop:
                 {
                     MutexRampPosition(btnStop); // stop
-                    SEND(String("=rsS"));
+                    ((OMPropertyChar*)root.PropertyFromPath("r", 's'))->SetSend('S');
                 }
                 break;
             case btnDown:
                 {
-                    MutexRampPosition(btnDown);
-                    SEND(String("=rsE"));    // extend
+                    MutexRampPosition(btnDown); // extend
+                    ((OMPropertyChar*)root.PropertyFromPath("r", 's'))->SetSend('E');
                 }
                 break;
             case slSpeedRamp:
                 {
                     auto speed = lv_slider_get_value(obj);
                     auto lbl = lv_obj_get_child_by_id(gridRamp, (void*)lblSpeedRamp);
-                    String spd(speed);
-                    lv_label_set_text(lbl, spd.c_str());
-                    SEND("=rv" + spd);
+                    lv_label_set_text(lbl, String(speed).c_str());
+                    ((OMPropertyLong*)root.PropertyFromPath("r", 'v'))->SetSend(speed);
                 }
                 break;
         }
     }
 }
 
-void MechUI::Command(String cmd)
+void MechUI::PropertyUpdate(OMProperty* prop)
 {
-    if (cmd.length() == 0 || cmd[0] != '=')
-        return;
-    int inx = 1;
-    if (cmd[1] == 'a')
+    auto path = prop->GetPath();
+    if (path[0] == 'a')
     {
-        if (RectInitComplete())
-            return;
         // Rectenna
-        switch (cmd[2])
+        switch (prop->Id)
         {
             case 's':   // sweep on/off
                 {
-                    RectInitFlags |= 0b0001;
                     auto sw = lv_obj_get_child_by_id(gridRect, (void*)swSweep);
                     if (sw)
-                        lv_obj_set_state(sw, LV_STATE_CHECKED, cmd[3] == '1');
+                        lv_obj_set_state(sw, LV_STATE_CHECKED, ((OMPropertyBool*)prop)->Value);
                 }
                 break;
             case 'v':   // sweep speed
                 {
-                    RectInitFlags |= 0b0010;
-                    auto speed = cmd.substring(3).toInt();
+                    auto speed = ((OMPropertyLong*)prop)->Value;
                     auto slider = lv_obj_get_child_by_id(gridRect, (void*)slSpeedRect);
                     if (slider)
                         lv_slider_set_value(slider, speed, LV_ANIM_OFF);
@@ -289,8 +278,7 @@ void MechUI::Command(String cmd)
                 break;
             case 'p':   // position
                 {
-                    RectInitFlags |= 0b0100;
-                    auto position = cmd.substring(3).toInt();
+                    auto position = ((OMPropertyLong*)prop)->Value;
                     auto slider = lv_obj_get_child_by_id(gridRect, (void*)slPosition);
                     if (slider)
                         lv_slider_set_value(slider, position, LV_ANIM_OFF);
@@ -302,15 +290,12 @@ void MechUI::Command(String cmd)
     }
     else
     {
-        if (RampInitComplete())
-            return;
         // Ramp
-        switch (cmd[2])
+        switch (prop->Id)
         {
             case 's':   // state
                 {
-                    RampInitFlags |= 0b001;
-                    switch (cmd[3])
+                    switch (((OMPropertyChar*)prop)->Value)
                     {
                     case 'R':       // Retracted
                     case 'r':       // retracting
@@ -328,8 +313,7 @@ void MechUI::Command(String cmd)
                 break;
             case 'v':   // Ramp speed
                 {
-                    RampInitFlags |= 0b010;
-                    auto speed = cmd.substring(3).toInt();
+                    auto speed = ((OMPropertyLong*)prop)->Value;
                     auto slider = lv_obj_get_child_by_id(gridRamp, (void*)slSpeedRamp);
                     if (slider)
                         lv_slider_set_value(slider, speed, LV_ANIM_OFF);

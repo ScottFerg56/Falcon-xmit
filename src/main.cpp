@@ -80,20 +80,50 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     }
   }
 
-class FRoot : public Root
+Root root(false, 'R', "Root", nullptr);  // this is the controller, not the device
+ESPNAgent agent(&SD, &root);
+
+class LightConnector : public OMConnector
 {
 public:
-	FRoot(bool isDevice) : Root(isDevice, 'R', "Root", nullptr) { }
-    void    Command(String cmd) override
+    void Init(OMObject* obj) override { }
+    void Push(OMObject* obj, OMProperty* prop) override
     {
-        lvexColorPicker::GetInstance().Command(cmd);
-        LightsUI::GetInstance().Command(cmd);
-        MechUI::GetInstance().Command(cmd);
+        LightsUI::GetInstance().PropertyUpdate(prop);
+        lvexColorPicker::GetInstance().PropertyUpdate(prop);
     }
+    void Pull(OMObject* obj, OMProperty* prop) override { }
 };
 
-FRoot root(false);  // this is the controller, not the device
-ESPNAgent agent(&SD, &root);
+class MechConnector : public OMConnector
+{
+public:
+    void Init(OMObject* obj) override { }
+    void Push(OMObject* obj, OMProperty* prop) override
+    {
+        MechUI::GetInstance().PropertyUpdate(prop);
+    }
+    void Pull(OMObject* obj, OMProperty* prop) override { }
+};
+
+class NullConnector : public OMConnector
+{
+public:
+    void Init(OMObject* obj) override { }
+    void Push(OMObject* obj, OMProperty* prop) override { }
+    void Pull(OMObject* obj, OMProperty* prop) override { }
+};
+
+LightConnector LightConn;
+MechConnector MechConn;
+NullConnector NullConn;
+
+#define GroupConn LightConn
+#define RectennaConn MechConn
+#define RampConn MechConn
+#define SoundConn NullConn
+#define DebugConn NullConn
+#include "OMDef.h"
 
 void setup()
 {
@@ -102,7 +132,7 @@ void setup()
     FLogger::setLogLevel(FLOG_VERBOSE);
     // FLogger::setPrinter(flog_printer);
 
-    flogv("Millennium Falcon xmit");
+    flogv("Falcon xmit " __DATE__ " " __TIME__);
 
     lv_init();
 
@@ -145,9 +175,11 @@ void setup()
     }
 
     agent.Setup(peerMacAddress);
-    root.Setup(&agent);
 
     createUI();
+
+    root.AddObjects(Objects);
+    root.Setup(&agent);
 
     flogv("Setup Done");
 }
@@ -177,12 +209,12 @@ void loop(void)
                     if (cmd[0] == '|')
                     {
                         // pipe a command to our peer
-                        SEND(cmd.substring(1));
+                        agent.SendCmd(cmd.substring(1));
                     }
                     else if (cmd[0] == 'x')
                     {
                         // file transfer
-                        ESPNAgent::PrimaryAgent()->StartFileTransfer("/Sad R2D2.mp3");
+                        agent.StartFileTransfer("/Sad R2D2.mp3");
                     }
                     else
                     {

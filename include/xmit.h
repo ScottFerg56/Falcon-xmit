@@ -5,4 +5,4 @@
 
 #define ARRAY_LENGTH(a) (sizeof(a) / sizeof(a[0]))
 
-#define SEND(x) ESPNAgent::PrimaryAgent()->SendCmd((x))
+extern Root root;

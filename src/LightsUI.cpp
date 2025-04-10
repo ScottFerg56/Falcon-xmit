@@ -65,40 +65,31 @@ Light Lights[] =
 {""}
 };
 
-void LightsUI::Command(String cmd)
+void LightsUI::PropertyUpdate(OMProperty* prop)
 {
+    if (prop->Id != 'o')
+        return;
     // find the light cmdPath that matches the input
-    cmd = cmd.substring(1);
+    auto path = prop->Parent->GetPath();
     Light* light = nullptr;
     for (int row = 0; strlen(Lights[row].name) > 0; row++)
     {
         auto ctrl = &Lights[row];
-        if (ctrl->isFather) // skip group
-            continue;
-        if (cmd.startsWith(ctrl->cmdPath))
+        if (path == ctrl->cmdPath)
         {
             light = ctrl;
             break;
         }
     }
-    if (light)
+    if (!light)
     {
-        int inx = strlen(light->cmdPath);
-        if (cmd[0] == 'l')
-        {
-            if (cmd[inx] != 'o')
-                return;
-            ++inx;
-        }
-        else
-        {
-            // UNDONE: rectenna/ramp
-            return;
-        }
-        auto sw = lv_obj_get_child_by_id(grid, (void*)(light->row * 100 + colSwitch));
-        if (sw)
-            lv_obj_set_state(sw, LV_STATE_CHECKED, cmd[inx] == '1');
+        floge("Light [%s] not found", path);
+        return;
     }
+    // flogv("Light [%s] %s: %s", light->name, path, ((OMPropertyBool*)prop)->Value ? "On" : "Off");
+    auto sw = lv_obj_get_child_by_id(grid, (void*)(light->row * 100 + colSwitch));
+    if (sw)
+        lv_obj_set_state(sw, LV_STATE_CHECKED, ((OMPropertyBool*)prop)->Value);
 }
 
 void LightsUI::EventFired(lv_event_t * e)
@@ -129,47 +120,7 @@ void LightsUI::EventFired(lv_event_t * e)
         flogv("Switch [%d] %s: %s", (uint32_t)lv_obj_get_id(obj), light->name, checked ? "On" : "Off");
         if (strlen(light->cmdPath) > 0)
         {
-            String cmd(light->cmdPath);
-            if (cmd[0] == 'l')
-                cmd.concat('o');
-            SEND('=' + cmd + (checked ? '1' : '0'));
-        }
-        if (light->isFather)
-        {
-            // set all nested switches to reflect the group state change
-            auto parent = lv_obj_get_parent(obj);
-            for (uint8_t r = row + 1; Lights[r].isSon; r++)
-            {
-                auto son = lv_obj_get_child_by_id(parent, (void*)(r * 100 + colSwitch));
-                if (son)
-                    lv_obj_set_state(son, LV_STATE_CHECKED, checked);
-            }
-        }
-        else if (light->isSon)
-        {
-            auto parent = lv_obj_get_parent(obj);
-            // find the father's row
-            uint8_t r = row;
-            while (!Lights[--r].isFather)
-                ;
-            auto father = lv_obj_get_child_by_id(parent, (void*)(r * 100 + colSwitch));
-            if (checked)
-            {
-                // father of nested switches reflects CHECKED if any sons are checked
-                lv_obj_add_state(father, LV_STATE_CHECKED);
-            }
-            else
-            {
-                // father of nested switches reflects unCHECKED only if all sons are unchecked
-                // scan the son rows
-                while (Lights[++r].isSon)
-                {
-                    auto son = lv_obj_get_child_by_id(parent, (void*)(r * 100 + colSwitch));
-                    if (lv_obj_has_state(son, LV_STATE_CHECKED))
-                        return;
-                }
-                lv_obj_remove_state(father, LV_STATE_CHECKED);
-            }
+            ((OMPropertyBool*)root.PropertyFromPath(light->cmdPath, 'o'))->SetSend(checked);
         }
     }
 }
@@ -295,7 +246,7 @@ void LightsUI::Create(lv_obj_t* parent)
 
         lightRowShow(row, !Lights[row].isSon);
     }
-    return;
+    // UI states will be filled in after setup requests values from the device
 }
 
 LightsUI LightsUI::lightsUI;

@@ -9,7 +9,7 @@ class lvexColorPicker : public ColorClient, public EventClient
 {
 public:
     static void Show(const char* title, const char* cmdPath);
-    void Command(String cmd);
+    void PropertyUpdate(OMProperty* prop);
     // as a ColorClient, we receive color change events from the HSV picker and palette
     virtual void ColorChanged(lv_color_t color);
     static lvexColorPicker& GetInstance() { return colorPicker; }
@@ -32,8 +32,6 @@ private:
     lv_obj_t* panelSample;
     uint8_t ColorInx = 0;
     lv_color_t Colors[2];
-    uint8_t InitFlags = 0;
-    bool InitComplete() { return InitFlags == 0b0111111; }
     void setColor(uint8_t inx, lv_color_t color);
     void setSpeedLabel(int speed);
     //lv_color_t getColor() { return Colors[ColorInx]; }

@@ -196,7 +196,6 @@ void lvexColorPicker::Show(const char* title, const char* cmdPath)
     if (!colorPicker.window)
         colorPicker.Create();
     colorPicker.CmdPath = cmdPath;
-    colorPicker.InitFlags = 0;
     lv_disp_t * display = lv_display_get_default();
     auto active_screen = lv_display_get_screen_active(display);
 
@@ -206,7 +205,8 @@ void lvexColorPicker::Show(const char* title, const char* cmdPath)
     lv_label_set_text(colorPicker.lblTitle, title);
     lv_obj_remove_flag(colorPicker.window, LV_OBJ_FLAG_HIDDEN); /* show the dialog */
     lv_obj_scroll_to_y(colorPicker.window, 0, LV_ANIM_OFF);
-    SEND("?" + colorPicker.CmdPath);
+    // update the UI as if properties were coming in from the device
+    root.ObjectFromPath(cmdPath)->TraverseProperties([](OMProperty* p) { colorPicker.PropertyUpdate(p); });
 }
 
 void lvexColorPicker::setSpeedLabel(int speed)
@@ -249,7 +249,7 @@ void lvexColorPicker::EventFired(lv_event_t* e)
                 else if (inx >= ARRAY_LENGTH(stdEffects))
                     inx = 0;
                 lv_dropdown_set_selected(dd, inx);
-                SEND("=" + CmdPath + 'a' + String(inx));
+                ((OMPropertyLong*)root.PropertyFromPath(CmdPath, 'a'))->SetSend(inx);
             }
             break;
         }
@@ -260,7 +260,7 @@ void lvexColorPicker::EventFired(lv_event_t* e)
         case swOn:  // On switch
             {
                 auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
-                SEND("=" + CmdPath + 'o' + (checked ? '1' : '0'));
+                ((OMPropertyBool*)root.PropertyFromPath(CmdPath, 'o'))->SetSend(checked);
             }
             break;
         case btnColor:  // Color 1/2 button toggle
@@ -276,7 +276,7 @@ void lvexColorPicker::EventFired(lv_event_t* e)
         case ddAnim:  // Anim list
             {
                 auto inx = lv_dropdown_get_selected(obj);
-                SEND("=" + CmdPath + 'a' + String(inx));
+                ((OMPropertyLong*)root.PropertyFromPath(CmdPath, 'a'))->SetSend(inx);
             }
             break;
         case slSpeed:  // Speed slider
@@ -284,13 +284,13 @@ void lvexColorPicker::EventFired(lv_event_t* e)
                 // slider values are in tenths of seconds
                 auto speed = lv_slider_get_value(obj) * SpeedSliderScale;
                 setSpeedLabel(speed);
-                SEND("=" + CmdPath + 's' + String(speed));
+                ((OMPropertyLong*)root.PropertyFromPath(CmdPath, 's'))->SetSend(speed);
             }
             break;
         case swRev:  // Reverse switch
             {
                 auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
-                SEND("=" + CmdPath + 'r' + (checked ? '1' : '0'));
+                ((OMPropertyBool*)root.PropertyFromPath(CmdPath, 'r'))->SetSend(checked);
             }
             break;
         }
@@ -298,55 +298,33 @@ void lvexColorPicker::EventFired(lv_event_t* e)
     }
 }
 
-void lvexColorPicker::Command(String cmd)
+void lvexColorPicker::PropertyUpdate(OMProperty* prop)
 {
-    if (InitComplete() || CmdPath.length() == 0 || cmd.length() == 0 || cmd[0] != '=')
+    if (prop->Parent->GetPath() != CmdPath)
         return;
-    int inx = 1;
-    if (cmd.indexOf(CmdPath) != inx)
-        return;
-    inx += CmdPath.length();
-    switch (cmd[inx])
+    switch (prop->Id)
     {
     case 'o':
         {
-            InitFlags |= 0b0000001;
             auto sw = lv_obj_get_child_by_id(window, (void*)swOn);
             if (sw)
-                lv_obj_set_state(sw, LV_STATE_CHECKED, cmd[++inx] == '1');
+                lv_obj_set_state(sw, LV_STATE_CHECKED, ((OMPropertyBool*)prop)->Value);
         }
         break;
     case 'a':
         {
-            InitFlags |= 0b0000010;
             auto dd = lv_obj_get_child_by_id(window, (void*)ddAnim);
             if (dd)
-            {
-                auto pre = lv_dropdown_get_selected(dd);
-                auto anim = cmd.substring(++inx).toInt();
-                if (pre != anim)
-                    lv_dropdown_set_selected(dd, (uint32_t)anim);
-            }
+                lv_dropdown_set_selected(dd, (uint32_t)((OMPropertyLong*)prop)->Value);
         }
         break;
     case 'c':
     case 'd':
         {
-            InitFlags |= (cmd[inx] == 'c' ? 0b0000100 : 0b0001000);
             // which color
-            uint8_t ix = cmd[inx] == 'c' ? 0 : 1;
-            // string hex color value
-            auto s = cmd.substring(++inx);
-            const char* p = s.c_str();
-            char *pend;
-            // hex color value
-            auto value = strtoul(p, &pend, 16);
-            if (pend == p || value == ULONG_MAX)
-            {
-                floge("invalid long value: [%s]", p);
-                return;
-            }
-            flogv("received Color%d value %X", ix, value);
+            uint8_t ix = prop->Id == 'c' ? 0 : 1;
+            auto value = ((OMPropertyLong*)prop)->Value;
+            flogv("received Color%d value %X", ix+1, value);
             // color value
             auto color = lv_color_hex(value);
             // if current color, set and reflect in UI, otherwise just set
@@ -355,13 +333,8 @@ void lvexColorPicker::Command(String cmd)
         break;
     case 's':
         {
-            InitFlags |= 0b0010000;
             // string speed value
-            auto speed = cmd.substring(++inx).toInt();
-            if (speed > SpeedSliderMax * SpeedSliderScale)
-                speed = SpeedSliderMax * SpeedSliderScale;
-            else if (speed < SpeedSliderMin * SpeedSliderScale)
-                speed = SpeedSliderMin * SpeedSliderScale;
+            auto speed = ((OMPropertyLong*)prop)->Value;
             auto v = (speed + SpeedSliderScale / 2) / SpeedSliderScale;
             auto slider = lv_obj_get_child_by_id(window, (void*)slSpeed);
             if (slider)
@@ -371,10 +344,9 @@ void lvexColorPicker::Command(String cmd)
         break;
     case 'r':
         {
-            InitFlags |= 0b0100000;
             auto sw = lv_obj_get_child_by_id(window, (void*)swRev);
             if (sw)
-                lv_obj_set_state(sw, LV_STATE_CHECKED, cmd[++inx] == '1');
+                lv_obj_set_state(sw, LV_STATE_CHECKED, ((OMPropertyBool*)prop)->Value);
         }
         break;
     default:
@@ -397,7 +369,8 @@ void lvexColorPicker::setColor(uint8_t inx, lv_color_t color)
         pickerHSV.setColor(color);
         // send change
         lv_obj_set_style_bg_color(panelSample, color, 0);
-        SEND("=" + CmdPath + (ColorInx == 0 ? 'c' : 'd') + String(lv_color_to_int(color), 16));
+        // send color change to device
+        ((OMPropertyLong*)root.PropertyFromPath(CmdPath, (ColorInx == 0 ? 'c' : 'd')))->SetSend(lv_color_to_int(color));
     }
 }
 
