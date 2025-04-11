@@ -1,6 +1,7 @@
 #include "lvexColorPicker.h"
 #include "FLogger.h"
 #include "xmit.h"
+#include "StdListFX.h"
 
 enum controlIds
 {
@@ -20,42 +21,48 @@ enum controlIds
     slSpeed,
 };
 
-const char* stdEffects [] =
+struct stdEffect
 {
-    "Static",
-    "Blink",
-    "Strobe",
-    "Blink Rainbow",
-    "Wipe",
-    "Wipe Rev",
-    "Wipe Random",
-    "Scan",
-    "Dual Scan",
-    "Breathe",
-    "Random Color",
-    "Single Dynamic",
-    "Multi Dynamic",
-    "Rainbow",
-    "Rainbow Cycle",
-    "Fade",
-    "Theater Chase",
-    "Theater Chase Rainbow",
-    "Running Lights",
-    "Twinkle",
-    "Twinkle Random",
-    "Twinkle Fade",
-    "Twinkle Fade Random",
-    "Sparkle",
-    "Chase",
-    "Chase Rainbow",
-    "Chase Flash",
-    "Running",
-    "Cylon",
-    "Comet",
-    "FireWorks",
-    "Fireworks Random",
-    "Fire Flicker",
-    "Fire Flicker Intense",
+    uint8_t id;
+    const char* name;
+};
+
+const stdEffect stdEffects [] =
+{
+    { FX_STATIC,                 "Static"                   },
+    { FX_BLINK,                  "Blink"                    },
+    { FX_STROBE,                 "Strobe"                   },
+//  { FX_BLINK_RAINBOW,          "Blink Rainbow"            },
+    { FX_WIPE,                   "Wipe"                     },
+    { FX_WIPE_REV,               "Wipe Rev"                 },
+//  { FX_WIPE_RANDOM,            "Wipe Random"              },
+    { FX_SCAN,                   "Scan"                     },
+    { FX_DUAL_SCAN,              "Dual Scan"                },
+    { FX_BREATH,                 "Breathe"                  },
+//  { FX_RANDOM_COLOR,           "Random Color"             },
+//  { FX_SINGLE_DYNAMIC,         "Single Dynamic"           },
+//  { FX_MULTI_DYNAMIC,          "Multi Dynamic"            },
+//  { FX_RAINBOW,                "Rainbow"                  },
+//  { FX_RAINBOW_CYCLE,          "Rainbow Cycle"            },
+    { FX_FADE,                   "Fade"                     },
+    { FX_THEATER_CHASE,          "Theater Chase"            },
+//  { FX_THEATER_CHASE_RAINBOW,  "Theater Chase Rainbow"    },
+    { FX_RUNNING_LIGHTS,         "Running Lights"           },
+    { FX_TWINKLE,                "Twinkle"                  },
+//  { FX_TWINKLE_RANDOM,         "Twinkle Random"           },
+    { FX_TWINKLE_FADE,           "Twinkle Fade"             },
+//  { FX_TWINKLE_FADE_RANDOM,    "Twinkle Fade Random"      },
+    { FX_SPARKLE,                "Sparkle"                  },
+    { FX_CHASE,                  "Chase"                    },
+//  { FX_CHASE_RAINBOW,          "Chase Rainbow"            },
+    { FX_CHASE_FLASH,            "Chase Flash"              },
+    { FX_RUNNING,                "Running"                  },
+    { FX_CYLON,                  "Cylon"                    },
+    { FX_COMET,                  "Comet"                    },
+    { FX_FIREWORKS,              "FireWorks"                },
+    { FX_FIREWORKS_RANDOM,       "Fireworks Random"         },
+    { FX_FIRE_FLICKER,           "Fire Flicker"             },
+    { FX_FIRE_FLICKER_INTENSE,   "Fire Flicker Intense"     },
 };
 
 const int SpeedSliderMin = 1;
@@ -88,7 +95,7 @@ void lvexColorPicker::Create()
     lv_obj_set_id(dda, (void*)ddAnim);
     lv_dropdown_clear_options(dda);
     for (uint16_t i = 0; i < ARRAY_LENGTH(stdEffects); i++)
-        lv_dropdown_add_option(dda, stdEffects[i], i);
+        lv_dropdown_add_option(dda, stdEffects[i].name, i);
     lv_obj_set_size(dda, 400, LV_PCT(100));
     // Set the text alignment to center
     auto list = lv_dropdown_get_list(dda);
@@ -249,7 +256,7 @@ void lvexColorPicker::EventFired(lv_event_t* e)
                 else if (inx >= ARRAY_LENGTH(stdEffects))
                     inx = 0;
                 lv_dropdown_set_selected(dd, inx);
-                ((OMPropertyLong*)Light->GetProperty('a'))->SetSend(inx);
+                ((OMPropertyLong*)Light->GetProperty('a'))->SetSend(stdEffects[inx].id);
             }
             break;
         }
@@ -276,7 +283,7 @@ void lvexColorPicker::EventFired(lv_event_t* e)
         case ddAnim:  // Anim list
             {
                 auto inx = lv_dropdown_get_selected(obj);
-                ((OMPropertyLong*)Light->GetProperty('a'))->SetSend(inx);
+                ((OMPropertyLong*)Light->GetProperty('a'))->SetSend(stdEffects[inx].id);
             }
             break;
         case slSpeed:  // Speed slider
@@ -315,7 +322,25 @@ void lvexColorPicker::PropertyUpdate(OMProperty* prop)
         {
             auto dd = lv_obj_get_child_by_id(window, (void*)ddAnim);
             if (dd)
-                lv_dropdown_set_selected(dd, (uint32_t)((OMPropertyLong*)prop)->Value);
+            {
+                FX_LIST fx = (FX_LIST)((OMPropertyLong*)prop)->Value;
+                // find the index of the effect in the list
+                int32_t inx = -1;
+                for (uint16_t i = 0; i < ARRAY_LENGTH(stdEffects); i++)
+                {
+                    if (stdEffects[i].id == fx)
+                    {
+                        inx = i;
+                        break;
+                    }
+                }
+                if (inx == -1)
+                {
+                    floge("invalid effect id %d", fx);
+                    return;
+                }
+                lv_dropdown_set_selected(dd, (uint32_t)inx);
+            }
         }
         break;
     case 'c':
