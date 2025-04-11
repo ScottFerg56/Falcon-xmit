@@ -20,5 +20,7 @@ private:
     MechUI() { };
     lv_obj_t* gridRect;
     lv_obj_t* gridRamp;
+    OMObject* rectObj;
+    OMObject* rampObj;
     void MutexRampPosition(int idChecked);
 };

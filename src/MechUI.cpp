@@ -3,6 +3,8 @@
 #include "MechUI.h"
 #include "FLogger.h"
 
+MechUI MechUI::mechUI;
+
 enum controlIds
 {
     noZero,
@@ -21,6 +23,8 @@ enum controlIds
 
 void MechUI::Create(lv_obj_t* parent)
 {
+    rectObj = root.GetObject('a');
+    rampObj = root.GetObject('r');
     //
     // Rectenna grid
     //
@@ -55,6 +59,9 @@ void MechUI::Create(lv_obj_t* parent)
     lv_obj_set_size(sw, 80, 40);
     lv_obj_set_grid_cell(sw, LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lv_obj_set_id(sw, (void*)(swSweep));
+    auto prop = rectObj->GetProperty('s');
+    lv_obj_set_user_data(sw, prop);
+    prop->Data = sw;
     AddEvent(sw, LV_EVENT_VALUE_CHANGED);
     lbl = lv_label_create(grid);
     lv_label_set_text(lbl, "on");
@@ -72,6 +79,9 @@ void MechUI::Create(lv_obj_t* parent)
     lv_slider_set_range(slider, 0, 100);
     lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 2, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_id(slider, (void*)slSpeedRect);
+    prop = rectObj->GetProperty('v');
+    lv_obj_set_user_data(slider, prop);
+    prop->Data = slider;
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
     // position slider and label
     lbl = lv_label_create(grid);
@@ -86,6 +96,9 @@ void MechUI::Create(lv_obj_t* parent)
     lv_slider_set_range(slider, 0, 100);
     lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 2, LV_GRID_ALIGN_CENTER, 2, 1);
     lv_obj_set_id(slider, (void*)slPosition);
+    prop = rectObj->GetProperty('p');
+    lv_obj_set_user_data(slider, prop);
+    prop->Data = slider;
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
 
     //
@@ -120,6 +133,8 @@ void MechUI::Create(lv_obj_t* parent)
     auto btn = lv_button_create(grid);
     lv_obj_set_size(btn, 60, 40);
     lv_obj_set_id(btn, (void*)btnUp);
+    prop = rampObj->GetProperty('s');
+    lv_obj_set_user_data(btn, prop);
     lv_obj_add_flag(btn, LV_OBJ_FLAG_CHECKABLE);
     lv_obj_set_style_bg_color(btn, lv_palette_main(LV_PALETTE_GREEN), LV_STATE_CHECKED);
     AddEvent(btn, LV_EVENT_VALUE_CHANGED);
@@ -131,6 +146,8 @@ void MechUI::Create(lv_obj_t* parent)
     btn = lv_button_create(grid);
     lv_obj_set_size(btn, 60, 40);
     lv_obj_set_id(btn, (void*)btnStop);
+    prop = rampObj->GetProperty('s');
+    lv_obj_set_user_data(btn, prop);
     lv_obj_add_flag(btn, LV_OBJ_FLAG_CHECKABLE);
     lv_obj_set_style_bg_color(btn, lv_palette_main(LV_PALETTE_AMBER), LV_STATE_CHECKED);
     AddEvent(btn, LV_EVENT_VALUE_CHANGED);
@@ -142,6 +159,8 @@ void MechUI::Create(lv_obj_t* parent)
     btn = lv_button_create(grid);
     lv_obj_set_size(btn, 60, 40);
     lv_obj_set_id(btn, (void*)btnDown);
+    prop = rampObj->GetProperty('s');
+    lv_obj_set_user_data(btn, prop);
     lv_obj_add_flag(btn, LV_OBJ_FLAG_CHECKABLE);
     AddEvent(btn, LV_EVENT_VALUE_CHANGED);
     lbl = lv_label_create(btn);
@@ -161,6 +180,9 @@ void MechUI::Create(lv_obj_t* parent)
     lv_slider_set_range(slider, 0, 100);
     lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 3, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_id(slider, (void*)slSpeedRamp);
+    prop = rampObj->GetProperty('v');
+    lv_obj_set_user_data(slider, prop);
+    prop->Data = slider;
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
     // UI states will be filled in after setup requests values from the device
 }
@@ -189,6 +211,12 @@ void MechUI::EventFired(lv_event_t * e)
     auto obj = lv_event_get_target_obj(e);
     auto id = (int)lv_obj_get_id(obj);
     auto code = lv_event_get_code(e);
+    auto prop = (OMProperty*)lv_obj_get_user_data(obj);
+    if (!prop)
+    {
+        floge("property not set: %d", id);
+        return;
+    }
     switch (code)
     {
     case LV_EVENT_VALUE_CHANGED:
@@ -197,7 +225,7 @@ void MechUI::EventFired(lv_event_t * e)
             case swSweep:
                 {
                     auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
-                    ((OMPropertyBool*)root.PropertyFromPath("a", 's'))->SetSend(checked);
+                    ((OMPropertyBool*)prop)->SetSend(checked);
                 }
                 break;
             case slSpeedRect:
@@ -205,7 +233,7 @@ void MechUI::EventFired(lv_event_t * e)
                     auto speed = lv_slider_get_value(obj);
                     auto lbl = lv_obj_get_child_by_id(gridRect, (void*)lblSpeedRect);
                     lv_label_set_text(lbl, String(speed).c_str());
-                    ((OMPropertyLong*)root.PropertyFromPath("a", 'v'))->SetSend(speed);
+                    ((OMPropertyLong*)prop)->SetSend(speed);
                 }
                 break;
             case slPosition:
@@ -213,30 +241,25 @@ void MechUI::EventFired(lv_event_t * e)
                     auto position = lv_slider_get_value(obj);
                     auto lbl = lv_obj_get_child_by_id(gridRect, (void*)lblPosition);
                     lv_label_set_text(lbl, String(position).c_str());
-                    ((OMPropertyLong*)root.PropertyFromPath("a", 'p'))->SetSend(position);
-                    // setting a position turns sweep off
-                    // so reflect that here since we're blocking updates from rcvr
-                    auto sw = lv_obj_get_child_by_id(gridRect, (void*)swSweep);
-                    if (sw)
-                        lv_obj_set_state(sw, LV_STATE_CHECKED, false);
+                    ((OMPropertyLong*)prop)->SetSend(position);
                 }
                 break;
             case btnUp:
                 {
                     MutexRampPosition(btnUp);   // retract
-                    ((OMPropertyChar*)root.PropertyFromPath("r", 's'))->SetSend('R');
+                    ((OMPropertyChar*)prop)->SetSend('R');
                 }
                 break;
             case btnStop:
                 {
                     MutexRampPosition(btnStop); // stop
-                    ((OMPropertyChar*)root.PropertyFromPath("r", 's'))->SetSend('S');
+                    ((OMPropertyChar*)prop)->SetSend('S');
                 }
                 break;
             case btnDown:
                 {
                     MutexRampPosition(btnDown); // extend
-                    ((OMPropertyChar*)root.PropertyFromPath("r", 's'))->SetSend('E');
+                    ((OMPropertyChar*)prop)->SetSend('E');
                 }
                 break;
             case slSpeedRamp:
@@ -244,7 +267,7 @@ void MechUI::EventFired(lv_event_t * e)
                     auto speed = lv_slider_get_value(obj);
                     auto lbl = lv_obj_get_child_by_id(gridRamp, (void*)lblSpeedRamp);
                     lv_label_set_text(lbl, String(speed).c_str());
-                    ((OMPropertyLong*)root.PropertyFromPath("r", 'v'))->SetSend(speed);
+                    ((OMPropertyLong*)prop)->SetSend(speed);
                 }
                 break;
         }
@@ -254,24 +277,24 @@ void MechUI::EventFired(lv_event_t * e)
 void MechUI::PropertyUpdate(OMProperty* prop)
 {
     auto path = prop->GetPath();
-    if (path[0] == 'a')
+    if (prop->Parent == rectObj)
     {
+        auto obj = (lv_obj_t*)prop->Data;
+        if (obj == nullptr)
+        {
+            floge("property not set: %s", prop->Name);
+            return;
+        }
         // Rectenna
         switch (prop->Id)
         {
             case 's':   // sweep on/off
-                {
-                    auto sw = lv_obj_get_child_by_id(gridRect, (void*)swSweep);
-                    if (sw)
-                        lv_obj_set_state(sw, LV_STATE_CHECKED, ((OMPropertyBool*)prop)->Value);
-                }
+                lv_obj_set_state(obj, LV_STATE_CHECKED, ((OMPropertyBool*)prop)->Value);
                 break;
             case 'v':   // sweep speed
                 {
                     auto speed = ((OMPropertyLong*)prop)->Value;
-                    auto slider = lv_obj_get_child_by_id(gridRect, (void*)slSpeedRect);
-                    if (slider)
-                        lv_slider_set_value(slider, speed, LV_ANIM_OFF);
+                    lv_slider_set_value(obj, speed, LV_ANIM_OFF);
                     auto lbl = lv_obj_get_child_by_id(gridRect, (void*)lblSpeedRect);
                     lv_label_set_text(lbl, String(speed).c_str());
                 }
@@ -279,9 +302,7 @@ void MechUI::PropertyUpdate(OMProperty* prop)
             case 'p':   // position
                 {
                     auto position = ((OMPropertyLong*)prop)->Value;
-                    auto slider = lv_obj_get_child_by_id(gridRect, (void*)slPosition);
-                    if (slider)
-                        lv_slider_set_value(slider, position, LV_ANIM_OFF);
+                    lv_slider_set_value(obj, position, LV_ANIM_OFF);
                     auto lbl = lv_obj_get_child_by_id(gridRect, (void*)lblPosition);
                     lv_label_set_text(lbl, String(position).c_str());
                 }
@@ -314,9 +335,13 @@ void MechUI::PropertyUpdate(OMProperty* prop)
             case 'v':   // Ramp speed
                 {
                     auto speed = ((OMPropertyLong*)prop)->Value;
-                    auto slider = lv_obj_get_child_by_id(gridRamp, (void*)slSpeedRamp);
-                    if (slider)
-                        lv_slider_set_value(slider, speed, LV_ANIM_OFF);
+                    auto obj = (lv_obj_t*)prop->Data;
+                    if (obj == nullptr)
+                    {
+                        floge("property not set: %s", prop->Name);
+                        return;
+                    }
+                    lv_slider_set_value(obj, speed, LV_ANIM_OFF);
                     auto lbl = lv_obj_get_child_by_id(gridRamp, (void*)lblSpeedRamp);
                     lv_label_set_text(lbl, String(speed).c_str());
                 }
@@ -324,5 +349,3 @@ void MechUI::PropertyUpdate(OMProperty* prop)
         }
     }
 }
-
-MechUI MechUI::mechUI;

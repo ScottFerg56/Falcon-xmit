@@ -176,9 +176,9 @@ void setup()
 
     agent.Setup(peerMacAddress);
 
-    createUI();
-
     root.AddObjects(Objects);
+    // UI requires object model to be setup first
+    createUI();
     root.Setup(&agent);
 
     flogv("Setup Done");

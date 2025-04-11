@@ -20,6 +20,7 @@ private:
     // private constructor for singleton
     LightsUI() { };
     lv_obj_t* grid;
-    void lightRowShow(int row, bool show);
-    void lightToggleExpansion(int row);
+    void CreateRows(OMObject* light, int32_t& row);
+    void lightRowShow(OMObject* light, bool show);
+    void lightToggleExpansion(OMObject* light);
 };

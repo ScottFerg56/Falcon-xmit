@@ -8,7 +8,7 @@
 class lvexColorPicker : public ColorClient, public EventClient
 {
 public:
-    static void Show(const char* title, const char* cmdPath);
+    static void Show(OMObject* light);
     void PropertyUpdate(OMProperty* prop);
     // as a ColorClient, we receive color change events from the HSV picker and palette
     virtual void ColorChanged(lv_color_t color);
@@ -24,7 +24,7 @@ private:
     // private constructor for singleton
     lvexColorPicker() { };
     void Create();
-    String CmdPath;
+    OMObject* Light = nullptr;
     lv_obj_t* window;
     lv_obj_t* lblTitle;
     lvexColorPickerHSV pickerHSV;
