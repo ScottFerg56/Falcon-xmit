@@ -19,6 +19,7 @@
 #include "SD.h"
 #include "SPI.h"
 #include "ESPNAgent.h"
+#include "Debug.h"
 
 #define SD_MOSI 11
 #define SD_MISO 13
@@ -122,7 +123,6 @@ NullConnector NullConn;
 #define RectennaConn MechConn
 #define RampConn MechConn
 #define SoundConn NullConn
-#define DebugConn NullConn
 #include "OMDef.h"
 
 void setup()
@@ -130,9 +130,8 @@ void setup()
     Serial.begin(115200);
     delay(4000);
     FLogger::setLogLevel(FLOG_VERBOSE);
-    // FLogger::setPrinter(flog_printer);
-
     flogv("Falcon xmit " __DATE__ " " __TIME__);
+    // FLogger::setPrinter(flog_printer);
 
     lv_init();
 
@@ -175,6 +174,7 @@ void setup()
     }
 
     agent.Setup(peerMacAddress);
+    Debug::GetInstance().Setup();
 
     root.AddObjects(Objects);
     // UI requires object model to be setup first
@@ -189,47 +189,6 @@ void loop(void)
     lv_timer_handler(); // let the GUI work
     delay(5);
 
-    if (Serial.available())
-    {
-        static String cmd;
-        while (Serial.available())
-        {
-            char c = Serial.read();
-            // echo back to terminal
-            if (c == '\n')
-                continue;
-            Serial.write(c);
-            if (c == '\r')
-                Serial.write('\n');
-            if (c < ' ')
-            {
-                // terminate command
-                if (cmd.length() > 0)
-                {
-                    if (cmd[0] == '|')
-                    {
-                        // pipe a command to our peer
-                        agent.SendCmd(cmd.substring(1));
-                    }
-                    else if (cmd[0] == 'x')
-                    {
-                        // file transfer
-                        agent.StartFileTransfer("/Sad R2D2.mp3");
-                    }
-                    else
-                    {
-                        // command for ourself
-                        root.Command(cmd);
-                    }
-                }
-                cmd.clear();
-            }
-            else
-            {
-                cmd.concat(c);
-            }
-        }
-    }
-
+    Debug::GetInstance().Run();
     agent.Run();
 }

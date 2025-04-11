@@ -1,4 +1,4 @@
-use Debug class in xmit?
+split OMObject classes into multiple files
 use override keyword
 FX names from shared header
 Sound UI
