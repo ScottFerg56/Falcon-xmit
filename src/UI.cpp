@@ -4,12 +4,13 @@
 #include "lvexColorPicker.h"
 #include "LightsUI.h"
 #include "MechUI.h"
+#include "SoundUI.h"
 #include "FLogger.h"
 
 lv_obj_t* tabview;
-lv_obj_t* tabControls;
+lv_obj_t* tabLights;
 lv_obj_t* tabMech;
-lv_obj_t* tab3;
+lv_obj_t* tabSound;
 
 static lv_theme_t theme_custom;
 static lv_style_t style_sw_main;
@@ -93,17 +94,20 @@ void createUI(Root& root)
     lv_obj_remove_flag(tabview, LV_OBJ_FLAG_SCROLL_CHAIN_HOR);
     
     // Add tabs
-    tabControls = lv_tabview_add_tab(tabview, "Lights");
-    lv_obj_set_style_bg_opa(tabControls, LV_OPA_0, 0);
+    tabLights = lv_tabview_add_tab(tabview, "Lights");
+    lv_obj_set_style_bg_opa(tabLights, LV_OPA_0, 0);
     tabMech = lv_tabview_add_tab(tabview, "Mech");
-    tab3 = lv_tabview_add_tab(tabview, "Tab 3");
+    tabSound = lv_tabview_add_tab(tabview, "Sound");
     
     // scrolling the tabs makes UI interaction tedious
-    lv_obj_remove_flag(tabControls, LV_OBJ_FLAG_SCROLLABLE);
-    LightsUI::GetInstance().Create(tabControls, root);
+    lv_obj_remove_flag(tabLights, LV_OBJ_FLAG_SCROLLABLE);
+    LightsUI::GetInstance().Create(tabLights, root);
 
     lv_obj_remove_flag(tabMech, LV_OBJ_FLAG_SCROLLABLE);
     MechUI::GetInstance().Create(tabMech, root);
+
+    lv_obj_remove_flag(tabSound, LV_OBJ_FLAG_SCROLLABLE);
+    SoundUI::GetInstance().Create(tabSound, root);
 
     lv_tabview_set_active(tabview, 0, LV_ANIM_OFF);
 }

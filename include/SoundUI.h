@@ -3,25 +3,22 @@
 #include "OMObject.h"
 #include "lvexEvents.h"
 
-class MechUI : public EventClient
+class SoundUI : public EventClient
 {
 public:
     void Create(lv_obj_t* parent, Root& root);
     void PropertyUpdate(OMProperty* prop);
-    static MechUI& GetInstance() { return mechUI; }
+    static SoundUI& GetInstance() { return soundUI; }
     // Delete copy constructor and assignment operator to prevent copying singleton
-    MechUI(const MechUI&) = delete;
-    MechUI& operator=(const MechUI&) = delete;
+    SoundUI(const SoundUI&) = delete;
+    SoundUI& operator=(const SoundUI&) = delete;
 protected:
     virtual void EventFired(lv_event_t* e);
 private:
     // Static member variable to hold the single instance
-    static MechUI mechUI;
+    static SoundUI soundUI;
     // private constructor for singleton
-    MechUI() { };
-    lv_obj_t* gridRect;
-    lv_obj_t* gridRamp;
-    OMObject* rectObj;
-    OMObject* rampObj;
-    void MutexRampPosition(int idChecked);
+    SoundUI() { };
+    lv_obj_t* gridSound = nullptr;
+    OMObject* soundObj = nullptr;
 };

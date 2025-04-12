@@ -1,13 +1,21 @@
 split OMObject classes into multiple files
+get slider min/max values from property
 use override keyword
+use object names for UI labels
 Sound UI
 sound names from fetched Sound property
 properties flags:
-    not to be sent to peer
-        e.g. Debug.LogLevel
+    no peer / local - not to be sent to peer
+        Debug.LogLevel
     no pref - do not write/read to preferences
-    read only
-    write only
+        sound list
+        sound delete
+        sound play
+    read only device
+        sound list
+    write only device
+        sound delete
+        sound play
 OMObject for FileSys, System
 heartbeat ACKs when idle
     connection state tracking

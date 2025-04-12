@@ -6,6 +6,7 @@
 #include "lvexColorPicker.h"
 #include "LightsUI.h"
 #include "MechUI.h"
+#include "SoundUI.h"
 
 #define CALIBRATING_TS 0
 #include <Elecrow-5in-Display.h>
@@ -107,22 +108,33 @@ public:
     void Pull(OMObject* obj, OMProperty* prop) override { }
 };
 
-class NullConnector : public OMConnector
+class SoundConnector : public OMConnector
 {
 public:
     void Init(OMObject* obj) override { }
-    void Push(OMObject* obj, OMProperty* prop) override { }
+    void Push(OMObject* obj, OMProperty* prop) override
+    {
+        SoundUI::GetInstance().PropertyUpdate(prop);
+    }
     void Pull(OMObject* obj, OMProperty* prop) override { }
 };
 
+// class NullConnector : public OMConnector
+// {
+// public:
+//     void Init(OMObject* obj) override { }
+//     void Push(OMObject* obj, OMProperty* prop) override { }
+//     void Pull(OMObject* obj, OMProperty* prop) override { }
+// };
+
 LightConnector LightConn;
 MechConnector MechConn;
-NullConnector NullConn;
+SoundConnector SoundConn;
+// NullConnector NullConn;
 
 #define GroupConn LightConn
 #define RectennaConn MechConn
 #define RampConn MechConn
-#define SoundConn NullConn
 #include "OMDef.h"
 
 void setup()
