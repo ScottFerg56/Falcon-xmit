@@ -77,7 +77,7 @@ void createCustomTheme(void)
     lv_display_set_theme(NULL, &theme_custom);
 }
 
-void createUI(void)
+void createUI(Root& root)
 {
     createCustomTheme();
     
@@ -100,10 +100,10 @@ void createUI(void)
     
     // scrolling the tabs makes UI interaction tedious
     lv_obj_remove_flag(tabControls, LV_OBJ_FLAG_SCROLLABLE);
-    LightsUI::GetInstance().Create(tabControls);
+    LightsUI::GetInstance().Create(tabControls, root);
 
     lv_obj_remove_flag(tabMech, LV_OBJ_FLAG_SCROLLABLE);
-    MechUI::GetInstance().Create(tabMech);
+    MechUI::GetInstance().Create(tabMech, root);
 
     lv_tabview_set_active(tabview, 0, LV_ANIM_OFF);
 }

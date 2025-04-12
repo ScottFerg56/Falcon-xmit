@@ -5,7 +5,7 @@
 class MechUI : public EventClient
 {
 public:
-    void Create(lv_obj_t* parent);
+    void Create(lv_obj_t* parent, Root& root);
     void PropertyUpdate(OMProperty* prop);
     static MechUI& GetInstance() { return mechUI; }
     // Delete copy constructor and assignment operator to prevent copying singleton

@@ -118,7 +118,7 @@ void LightsUI::lightToggleExpansion(OMObject* light)
     lv_label_set_text(lbl, expand ? LV_SYMBOL_MINUS : LV_SYMBOL_PLUS);
 }
 
-void LightsUI::Create(lv_obj_t* parent)
+void LightsUI::Create(lv_obj_t* parent, Root& root)
 {
     static int32_t numRows = 0;
     auto lights = root.GetObject('l');

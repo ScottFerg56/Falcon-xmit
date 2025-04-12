@@ -1,2 +1,2 @@
 #pragma once
-void createUI(void);
+void createUI(Root& root);

@@ -21,7 +21,7 @@ enum controlIds
     slSpeedRamp,
 };
 
-void MechUI::Create(lv_obj_t* parent)
+void MechUI::Create(lv_obj_t* parent, Root& root)
 {
     rectObj = root.GetObject('a');
     rampObj = root.GetObject('r');

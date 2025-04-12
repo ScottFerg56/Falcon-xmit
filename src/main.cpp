@@ -178,7 +178,7 @@ void setup()
 
     root.AddObjects(Objects);
     // UI requires object model to be setup first
-    createUI();
+    createUI(root);
     root.Setup(&agent);
 
     flogv("Setup Done");

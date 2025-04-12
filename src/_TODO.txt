@@ -1,11 +1,11 @@
 split OMObject classes into multiple files
 use override keyword
-FX names from shared header
 Sound UI
 sound names from fetched Sound property
 properties flags:
     not to be sent to peer
         e.g. Debug.LogLevel
+    no pref - do not write/read to preferences
     read only
     write only
 OMObject for FileSys, System
@@ -13,6 +13,7 @@ heartbeat ACKs when idle
     connection state tracking
     'Send' errors better interaction with file transfer
     resync of OM (need Server/Client distinction)
+        sync in direction of the peer that went down?
 spice up UI with fonts, button/slider shapes, icons, sounds??
 add UI save to prefs option (button on settings header?)
 Rectenna can sweep faster by incrementing pos rather than or in addition to reducing delay
