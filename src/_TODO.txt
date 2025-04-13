@@ -1,9 +1,9 @@
+Sound UI
+    Sound files management
 split OMObject classes into multiple files
 get slider min/max values from property
 use override keyword
 use object names for UI labels
-Sound UI
-sound names from fetched Sound property
 properties flags:
     no peer / local - not to be sent to peer
         Debug.LogLevel

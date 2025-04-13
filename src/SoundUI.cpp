@@ -2,6 +2,7 @@
 #include "xmit.h"
 #include "SoundUI.h"
 #include "FLogger.h"
+#include "SD.h"
 
 SoundUI SoundUI::soundUI;
 
@@ -25,6 +26,33 @@ std::vector<String> SplitString(String str, char delimiter)
     return strs;
 }
 
+std::vector<String> SoundFiles()
+{
+    std::vector<String> files;
+    File root = SD.open("/", 0);
+    if (!root)
+    {
+        floge("Failed to open root directory");
+        return files;
+    }
+    File file = root.openNextFile();
+    while (file)
+    {
+        if (!file.isDirectory())
+        {
+            String name(file.name());
+            if (name.endsWith(".mp3"))
+            {
+                name.remove(name.length() - 4);
+                files.push_back(name);
+            }
+        }
+        file = root.openNextFile();
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+}
+
 enum soundControlIds
 {
     noZero,
@@ -33,6 +61,9 @@ enum soundControlIds
     btnDelete,
     lblVolume,
     slVolume,
+    ddFiles,
+    btnDnld,
+    btnDeleteFile,
 };
 
 void SoundUI::Create(lv_obj_t* parent, Root& root)
@@ -54,7 +85,7 @@ void SoundUI::Create(lv_obj_t* parent, Root& root)
 
     // lv_obj_set_style_grid_column_dsc_array(grid, col_dsc, 0);
     // lv_obj_set_style_grid_row_dsc_array(grid, row_dsc, 0);
-    lv_obj_set_size(grid, 650, 180);
+    lv_obj_set_size(grid, 650, 240);
     lv_obj_align(grid, LV_ALIGN_TOP_MID, 0, 20);
     // lv_obj_set_layout(grid, LV_LAYOUT_GRID);
     lv_obj_set_style_pad_column(grid, 20, 0);
@@ -117,6 +148,39 @@ void SoundUI::Create(lv_obj_t* parent, Root& root)
     lv_obj_set_user_data(slider, prop);
     prop->Data = slider;
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
+
+    // Sound files dropdown and buttons
+    auto ddf = lv_dropdown_create(grid);
+    lv_obj_set_id(ddf, (void*)ddFiles);
+    lv_obj_set_size(ddf, 400, 30);
+    // Set the text alignment to center
+    list = lv_dropdown_get_list(ddf);
+    lv_obj_set_style_text_align(list, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_style_bg_opa(ddf, LV_OPA_0, 0);
+    auto files = SoundFiles();
+    lv_dropdown_clear_options(ddf);
+    for (auto file : files)
+    {
+        lv_dropdown_add_option(ddf, file.c_str(), LV_DROPDOWN_POS_LAST);
+    }
+    lv_dropdown_set_selected(ddf, 0);
+    // download button
+    btn = lv_btn_create(grid);
+    lv_obj_set_id(btn, (void*)btnDnld);
+    lv_obj_set_size(btn, 60, 40);
+    lbl = lv_label_create(btn);
+    lv_label_set_text(lbl, LV_SYMBOL_DOWNLOAD);
+    lv_obj_center(lbl);
+    AddEvent(btn, LV_EVENT_CLICKED);
+    
+    // delete button
+    btn = lv_btn_create(grid);
+    lv_obj_set_id(btn, (void*)btnDeleteFile);
+    lv_obj_set_size(btn, 60, 40);
+    lbl = lv_label_create(btn);
+    lv_label_set_text(lbl, LV_SYMBOL_TRASH);
+    lv_obj_center(lbl);
+    AddEvent(btn, LV_EVENT_LONG_PRESSED);
 }
 
 void SoundUI::EventFired(lv_event_t* e)
@@ -125,11 +189,6 @@ void SoundUI::EventFired(lv_event_t* e)
     auto id = (int)lv_obj_get_id(obj);
     auto code = lv_event_get_code(e);
     auto prop = (OMProperty*)lv_obj_get_user_data(obj);
-    if (!prop)
-    {
-        floge("property not set: %d", id);
-        return;
-    }
     switch (code)
     {
     case LV_EVENT_VALUE_CHANGED:
@@ -160,16 +219,44 @@ void SoundUI::EventFired(lv_event_t* e)
                     ((OMPropertyLong*)prop)->SetSend(value + 1);
                 }
                 break;
+            case btnDnld:   // download selected sound file to rcvr
+                {
+                    auto dd = lv_obj_get_child_by_id(gridSound, (void*)ddFiles);
+                    auto value = lv_dropdown_get_selected(dd);
+                    // file transfer
+                    auto files = SoundFiles();
+                    if (files.size() == 0)
+                        return;
+                    flogv("downloading file: %s", files[value].c_str());
+                    ((Root*)(soundObj->MyRoot()))->GetAgent()->StartFileTransfer("/" + files[value] + ".mp3");
+                }
+                break;
         }
         break;
     case LV_EVENT_LONG_PRESSED:
         switch (id)
         {
-            case btnDelete: // delete the selected sound on the device
+            case btnDelete: // delete the selected sound on the rcvr
                 {
                     auto dd = lv_obj_get_child_by_id(gridSound, (void*)ddSounds);
                     auto value = lv_dropdown_get_selected(dd);
                     ((OMPropertyLong*)prop)->SetSend(value + 1);
+                }
+                break;
+            case btnDeleteFile:   // delete selected sound file
+                {
+                    auto dd = lv_obj_get_child_by_id(gridSound, (void*)ddFiles);
+                    auto value = lv_dropdown_get_selected(dd);
+                    auto files = SoundFiles();
+                    flogv("deleting file: %s", files[value].c_str());
+                    SD.remove("/" + files[value] + ".mp3");
+                    files = SoundFiles();
+                    lv_dropdown_clear_options(dd);
+                    for (auto file : files)
+                    {
+                        lv_dropdown_add_option(dd, file.c_str(), LV_DROPDOWN_POS_LAST);
+                    }
+                    lv_dropdown_set_selected(dd, 0);
                 }
                 break;
         }

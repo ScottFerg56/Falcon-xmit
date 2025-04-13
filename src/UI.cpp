@@ -103,6 +103,9 @@ void createUI(Root& root)
     lv_obj_remove_flag(tabLights, LV_OBJ_FLAG_SCROLLABLE);
     LightsUI::GetInstance().Create(tabLights, root);
 
+    // pre-create the color picker to preload memory
+    lvexColorPicker::GetInstance().Create();
+
     lv_obj_remove_flag(tabMech, LV_OBJ_FLAG_SCROLLABLE);
     MechUI::GetInstance().Create(tabMech, root);
 

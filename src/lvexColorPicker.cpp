@@ -72,6 +72,7 @@ const int SpeedSliderScale = 100;
 void lvexColorPicker::Create()
 {
     window = lv_win_create(lv_screen_active());
+    lv_obj_add_flag(window, LV_OBJ_FLAG_HIDDEN);
 
     LV_IMG_DECLARE(FalconBG);
     lv_obj_set_style_bg_image_src(window, &FalconBG, 0);
@@ -267,7 +268,10 @@ void lvexColorPicker::EventFired(lv_event_t* e)
         case swOn:  // On switch
             {
                 auto checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
-                ((OMPropertyBool*)Light->GetProperty('o'))->SetSend(checked);
+                auto prop = (OMPropertyBool*)Light->GetProperty('o');
+                prop->SetSend(checked);
+                // push value to LightsUI
+                prop->Push();
             }
             break;
         case btnColor:  // Color 1/2 button toggle
