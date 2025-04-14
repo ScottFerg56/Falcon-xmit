@@ -1,5 +1,3 @@
-Sound UI
-    Sound files management
 split OMObject classes into multiple files
 get slider min/max values from property
 use override keyword
@@ -28,6 +26,7 @@ Rectenna can sweep faster by incrementing pos rather than or in addition to redu
 is esp_now data recv interrupt based or sync'd with loop?
     possible issues with data buffering critical section
 rcvr: Ramp speed always comes back as 100
+review of memory mapping and usage
 
 System:
     identify

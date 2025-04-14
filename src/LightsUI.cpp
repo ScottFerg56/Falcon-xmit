@@ -18,19 +18,6 @@ enum lightColumns
     colPad,
 };
 
-struct Light
-{
-    const char* name;
-    bool isFather;
-    bool isSon;
-    const char* lblOff;
-    const char* lblOn;
-    const char* cmdPath;
-
-    uint16_t row;
-    bool expanded;
-};
-
 const char* sOff = "off";
 const char* sOn = "on";
 
