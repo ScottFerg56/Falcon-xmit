@@ -41,7 +41,7 @@ void LightsUI::PropertyUpdate(OMProperty* prop)
     auto sw = (lv_obj_t*)prop->Data;
     if (!sw)
     {
-        floge("Prop data [%s] not set", prop->Parent->GetName());
+        floge("Prop data [%s] not set", prop->Parent->Name);
         return;
     }
     lv_obj_set_state(sw, LV_STATE_CHECKED, ((OMPropertyBool*)prop)->Value);

@@ -1,7 +1,5 @@
 split OMObject classes into multiple files
-get slider min/max values from property
 use override keyword
-use object names for UI labels
 properties flags:
     no peer / local - not to be sent to peer
         Debug.LogLevel

@@ -45,12 +45,13 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
 
     // Rectenna
     auto lbl = lv_label_create(grid);
-    lv_label_set_text(lbl, "Rectenna");
+    lv_label_set_text(lbl, rectObj->Name);
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lv_obj_set_style_text_font(lbl, &lv_font_montserrat_30, 0);
     // sweep switch and labels
+    auto prop = rectObj->GetProperty('s');
     lbl = lv_label_create(grid);
-    lv_label_set_text(lbl, "Sweep");
+    lv_label_set_text(lbl, prop->Name);
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 1, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lbl = lv_label_create(grid);
     lv_label_set_text(lbl, "off");
@@ -59,7 +60,6 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
     lv_obj_set_size(sw, 80, 40);
     lv_obj_set_grid_cell(sw, LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lv_obj_set_id(sw, (void*)(swSweep));
-    auto prop = rectObj->GetProperty('s');
     lv_obj_set_user_data(sw, prop);
     prop->Data = sw;
     AddEvent(sw, LV_EVENT_VALUE_CHANGED);
@@ -67,8 +67,9 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
     lv_label_set_text(lbl, "on");
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_START, 4, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     // speed slider and labels
+    prop = rectObj->GetProperty('v');
     lbl = lv_label_create(grid);
-    lv_label_set_text(lbl, "Speed");
+    lv_label_set_text(lbl, prop->Name);
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
     lbl = lv_label_create(grid);
     lv_obj_set_id(lbl, (void*)lblSpeedRect);
@@ -76,16 +77,16 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 2, 1, LV_GRID_ALIGN_CENTER, 1, 1);
     auto slider = lv_slider_create(grid);
     lv_obj_set_size(slider, 300, 30);
-    lv_slider_set_range(slider, 0, 100);
+    lv_slider_set_range(slider, ((OMPropertyLong*)prop)->Min, ((OMPropertyLong*)prop)->Max);
     lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 2, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_id(slider, (void*)slSpeedRect);
-    prop = rectObj->GetProperty('v');
     lv_obj_set_user_data(slider, prop);
     prop->Data = slider;
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
     // position slider and label
+    prop = rectObj->GetProperty('p');
     lbl = lv_label_create(grid);
-    lv_label_set_text(lbl, "Position");
+    lv_label_set_text(lbl, prop->Name);
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 1, 1, LV_GRID_ALIGN_CENTER, 2, 1);
     lbl = lv_label_create(grid);
     lv_obj_set_id(lbl, (void*)lblPosition);
@@ -93,10 +94,9 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 2, 1, LV_GRID_ALIGN_CENTER, 2, 1);
     slider = lv_slider_create(grid);
     lv_obj_set_size(slider, 300, 30);
-    lv_slider_set_range(slider, 0, 100);
+    lv_slider_set_range(slider, ((OMPropertyLong*)prop)->Min, ((OMPropertyLong*)prop)->Max);
     lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 2, LV_GRID_ALIGN_CENTER, 2, 1);
     lv_obj_set_id(slider, (void*)slPosition);
-    prop = rectObj->GetProperty('p');
     lv_obj_set_user_data(slider, prop);
     prop->Data = slider;
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
@@ -121,7 +121,7 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
 
     // Ramp
     lbl = lv_label_create(grid);
-    lv_label_set_text(lbl, "Ramp");
+    lv_label_set_text(lbl, rampObj->Name);
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lv_obj_set_style_text_font(lbl, &lv_font_montserrat_30, 0);
 
@@ -129,11 +129,11 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
     lbl = lv_label_create(grid);
     lv_label_set_text(lbl, "Position");
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 1, 1, LV_GRID_ALIGN_CENTER, 0, 1);
-    // UP
+    // state - UP
+    prop = rampObj->GetProperty('s');
     auto btn = lv_button_create(grid);
     lv_obj_set_size(btn, 60, 40);
     lv_obj_set_id(btn, (void*)btnUp);
-    prop = rampObj->GetProperty('s');
     lv_obj_set_user_data(btn, prop);
     lv_obj_add_flag(btn, LV_OBJ_FLAG_CHECKABLE);
     lv_obj_set_style_bg_color(btn, lv_palette_main(LV_PALETTE_GREEN), LV_STATE_CHECKED);
@@ -142,11 +142,10 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
     lv_label_set_text(lbl, LV_SYMBOL_UP);
     lv_obj_center(lbl);
     lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_CENTER, 2, 1, LV_GRID_ALIGN_CENTER, 0, 1);
-    // STOP
+    // state - STOP
     btn = lv_button_create(grid);
     lv_obj_set_size(btn, 60, 40);
     lv_obj_set_id(btn, (void*)btnStop);
-    prop = rampObj->GetProperty('s');
     lv_obj_set_user_data(btn, prop);
     lv_obj_add_flag(btn, LV_OBJ_FLAG_CHECKABLE);
     lv_obj_set_style_bg_color(btn, lv_palette_main(LV_PALETTE_AMBER), LV_STATE_CHECKED);
@@ -155,11 +154,10 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
     lv_label_set_text(lbl, LV_SYMBOL_STOP);
     lv_obj_center(lbl);
     lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 0, 1);
-    // DOWN
+    // state - DOWN
     btn = lv_button_create(grid);
     lv_obj_set_size(btn, 60, 40);
     lv_obj_set_id(btn, (void*)btnDown);
-    prop = rampObj->GetProperty('s');
     lv_obj_set_user_data(btn, prop);
     lv_obj_add_flag(btn, LV_OBJ_FLAG_CHECKABLE);
     AddEvent(btn, LV_EVENT_VALUE_CHANGED);
@@ -168,8 +166,9 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
     lv_obj_center(lbl);
     lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_CENTER, 4, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     // speed slider and labels
+    prop = rampObj->GetProperty('v');
     lbl = lv_label_create(grid);
-    lv_label_set_text(lbl, "Speed");
+    lv_label_set_text(lbl, prop->Name);
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
     lbl = lv_label_create(grid);
     lv_obj_set_id(lbl, (void*)lblSpeedRamp);
@@ -177,10 +176,9 @@ void MechUI::Create(lv_obj_t* parent, Root& root)
     lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 2, 1, LV_GRID_ALIGN_CENTER, 1, 1);
     slider = lv_slider_create(grid);
     lv_obj_set_size(slider, 300, 30);
-    lv_slider_set_range(slider, 0, 100);
+    lv_slider_set_range(slider, ((OMPropertyLong*)prop)->Min, ((OMPropertyLong*)prop)->Max);
     lv_obj_set_grid_cell(slider, LV_GRID_ALIGN_CENTER, 3, 3, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_id(slider, (void*)slSpeedRamp);
-    prop = rampObj->GetProperty('v');
     lv_obj_set_user_data(slider, prop);
     prop->Data = slider;
     AddEvent(slider, LV_EVENT_VALUE_CHANGED);
