@@ -1,19 +1,11 @@
-OMObject for FileSys, System
 'Send' errors better interaction with file transfer
 spice up UI with fonts, button/slider shapes, icons, sounds??
-add UI save to prefs option (button on settings header?)
 Rectenna can sweep faster by incrementing pos rather than or in addition to reducing delay
-is esp_now data recv interrupt based or sync'd with loop?
-    possible issues with data buffering critical section
-rcvr: Ramp speed always comes back as 100
 review of memory mapping and usage
 
 System:
     identify
-    WiFi info/signal strength
     restart
     memory usage
-FileSys: file system
-    nvs_flash_erase
 
-need luminance control over generated colors to keep them from being too bright
+luminance control over generated colors to keep them from being too bright
