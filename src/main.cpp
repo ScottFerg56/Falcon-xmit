@@ -7,6 +7,7 @@
 #include "LightsUI.h"
 #include "MechUI.h"
 #include "SoundUI.h"
+#include "SystemUI.h"
 
 #define CALIBRATING_TS 0
 #include <Elecrow-5in-Display.h>
@@ -82,9 +83,6 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     }
   }
 
-Root root(false, 'R', "Root", nullptr);  // this is the controller, not the device
-ESPNAgent agent(&SD, &root);
-
 class LightConnector : public OMConnector
 {
 public:
@@ -119,23 +117,36 @@ public:
     void Pull(OMObject* obj, OMProperty* prop) override { }
 };
 
-// class NullConnector : public OMConnector
-// {
-// public:
-//     void Init(OMObject* obj) override { }
-//     void Push(OMObject* obj, OMProperty* prop) override { }
-//     void Pull(OMObject* obj, OMProperty* prop) override { }
-// };
-
 LightConnector LightConn;
 MechConnector MechConn;
 SoundConnector SoundConn;
-// NullConnector NullConn;
+
+class RootConnector : public OMConnector
+{
+public:
+    void Init(OMObject *obj) override {}
+    void Push(OMObject *obj, OMProperty *prop) override
+    {
+        auto id = prop->Id;
+        switch (id)
+        {
+        case 'f':   // free space
+            SystemUI::GetInstance().PropertyUpdate(prop);
+            break;
+        }
+    }
+    void Pull(OMObject *obj, OMProperty *prop) override {}
+};
+
+RootConnector RootConn;
 
 #define GroupConn LightConn
 #define RectennaConn MechConn
 #define RampConn MechConn
 #include "OMDef.h"
+  
+Root root(false, 'R', "Root", &RootConn);  // this is the controller, not the device
+ESPNAgent agent(&SD, &root);
 
 void setup()
 {
@@ -189,6 +200,7 @@ void setup()
     Debug::GetInstance().Setup();
 
     root.AddObjects(Objects);
+    root.AddProperties(RootProps);
     // UI requires object model to be setup first
     createUI(root);
     root.Setup(&agent);

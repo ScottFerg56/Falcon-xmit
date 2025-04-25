@@ -15,6 +15,8 @@ enum controlIds
     ddFiles,
     btnDnld,
     btnDeleteFile,
+    lblFreeSpace,
+    btnRestart,
 };
 
 std::vector<String> SoundFiles()
@@ -51,13 +53,13 @@ void SystemUI::Create(lv_obj_t* parent, Root& root)
     // System grid
     //
     static int32_t col_dsc[] = { LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
-    static int32_t row_dsc[] = { LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+    static int32_t row_dsc[] = { LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
 
     // Create a grid container
     grid = lv_obj_create(parent);
     lv_obj_set_style_grid_column_dsc_array(grid, col_dsc, 0);
     lv_obj_set_style_grid_row_dsc_array(grid, row_dsc, 0);
-    lv_obj_set_size(grid, 800, 210);
+    lv_obj_set_size(grid, 800, 330);
     lv_obj_align(grid, LV_ALIGN_TOP_MID, 0, 20);
     lv_obj_set_layout(grid, LV_LAYOUT_GRID);
     lv_obj_set_style_pad_column(grid, 20, 0);
@@ -125,6 +127,28 @@ void SystemUI::Create(lv_obj_t* parent, Root& root)
     lv_label_set_text(lbl, LV_SYMBOL_TRASH);
     lv_obj_center(lbl);
     AddEvent(btn, LV_EVENT_LONG_PRESSED);
+
+    // free space label and value
+    lbl = lv_label_create(grid);
+    lv_label_set_text(lbl, "File Free Space");
+    lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 0, 1, LV_GRID_ALIGN_CENTER, 3, 1);
+    lbl = lv_label_create(grid);
+    lv_label_set_text(lbl, "00000000");
+    lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_START, 1, 2, LV_GRID_ALIGN_CENTER, 3, 1);
+    lv_obj_set_id(lbl, (void*)lblFreeSpace);
+
+    // restart label and button
+    lbl = lv_label_create(grid);
+    lv_label_set_text(lbl, "Restart");
+    lv_obj_set_grid_cell(lbl, LV_GRID_ALIGN_END, 0, 1, LV_GRID_ALIGN_CENTER, 4, 1);
+    btn = lv_button_create(grid);
+    lv_obj_set_size(btn, 60, 40);
+    lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_CENTER, 4, 1);
+    lv_obj_set_id(btn, (void*)(btnRestart));
+    AddEvent(btn, LV_EVENT_LONG_PRESSED);
+    lbl = lv_label_create(btn);
+    lv_label_set_text(lbl, LV_SYMBOL_POWER);
+    lv_obj_center(lbl);
 }
 
 void SystemUI::EventFired(lv_event_t * e)
@@ -142,7 +166,7 @@ void SystemUI::EventFired(lv_event_t * e)
                     pRoot->SendCmd(">R");
                 }
                 break;
-                case btnRemove:
+            case btnRemove:
                 {
                     pRoot->SendCmd("-R");
                 }
@@ -181,7 +205,27 @@ void SystemUI::EventFired(lv_event_t * e)
                     lv_dropdown_set_selected(dd, 0);
                 }
                 break;
+            case btnRestart:
+                {
+                    // send set to restart property with 'PIN' value 1234
+                    pRoot->SendCmd("=x1234");
+                }
+                break;
         }
         break;
+    }
+}
+
+void SystemUI::PropertyUpdate(OMProperty* prop)
+{
+    switch (prop->Id)
+    {
+        case 'f':   // free space
+            {
+                auto value = ((OMPropertyLong*)prop)->Value;
+                auto lbl = lv_obj_get_child_by_id(grid, (void*)lblFreeSpace);
+                lv_label_set_text(lbl, String(value).c_str());
+            }
+            break;
     }
 }

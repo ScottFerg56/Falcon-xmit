@@ -7,6 +7,7 @@ class SystemUI : public EventClient
 {
 public:
     void Create(lv_obj_t* parent, Root& root);
+    void PropertyUpdate(OMProperty* prop);
     static SystemUI& GetInstance() { return systemUI; }
     // Delete copy constructor and assignment operator to prevent copying singleton
     SystemUI(const SystemUI&) = delete;
