@@ -1,6 +1,7 @@
+more sound files
 Rectenna can sweep faster by incrementing pos rather than or in addition to reducing delay
-finish main switch action
 lower log level
+reduce setup Serial delay
 
 'Send' errors better interaction with file transfer
 spice up UI with fonts, button/slider shapes, icons, sounds??

@@ -52,37 +52,6 @@ static uint32_t my_tick(void)
 
 uint8_t peerMacAddress[] = {0xE8, 0x9F, 0x6D, 0x20, 0x7D, 0x28};
 
-void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
-    Serial.printf("Listing directory: %s\n", dirname);
-  
-    File root = fs.open(dirname);
-    if(!root){
-      Serial.println("Failed to open directory");
-      return;
-    }
-    if(!root.isDirectory()){
-      Serial.println("Not a directory");
-      return;
-    }
-  
-    File file = root.openNextFile();
-    while(file){
-      if(file.isDirectory()){
-        Serial.print("  DIR : ");
-        Serial.println(file.name());
-        if(levels){
-          listDir(fs, file.name(), levels -1);
-        }
-      } else {
-        Serial.print("  FILE: ");
-        Serial.print(file.name());
-        Serial.print("  SIZE: ");
-        Serial.println(file.size());
-      }
-      file = root.openNextFile();
-    }
-  }
-
 class LightConnector : public OMConnector
 {
 public:
@@ -187,12 +156,6 @@ void setup()
         if (cardType == CARD_NONE)
         {
             flogi("No SD card attached");
-        }
-        else
-        {
-            listDir(SD, "/", 0);
-            Serial.printf("Total space: %llu\n", SD.totalBytes());
-            Serial.printf("Used space: %llu\n", SD.usedBytes());
         }
     }
 
