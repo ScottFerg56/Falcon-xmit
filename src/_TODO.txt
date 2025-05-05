@@ -1,9 +1,13 @@
-more sound files
-Rectenna can sweep faster by incrementing pos rather than or in addition to reducing delay
 lower log level
 reduce setup Serial delay
+Rectenna can sweep faster by incrementing pos rather than or in addition to reducing delay
 
-'Send' errors better interaction with file transfer
+file transfer issues
+    lack of user feedback for long ops
+    UI remains enabled which could cause conflicts
+    free space reports does not jive with
+        errors produced trying to append file for which there should be space
+        'Upload Filesystem Image' confirms lack of space
 spice up UI with fonts, button/slider shapes, icons, sounds??
 review of memory mapping and usage
 luminance control over generated colors to keep them from being too bright
